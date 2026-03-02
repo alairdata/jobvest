@@ -16,18 +16,22 @@ export default async function handler(req, res) {
   const feedbackSummary = Array.isArray(feedback)
     ? feedback
         .filter((f) => f.status !== "good")
-        .map((f) => `- ${f.section}: ${f.msg}`)
-        .join("\n")
+        .map((f) => `- ${f.section} [${f.status.toUpperCase()}]: ${f.msg}\n  Fix: ${f.details}`)
+        .join("\n\n")
     : "";
 
-  const systemPrompt = `You are a professional resume rewriter. You receive raw resume text and feedback about weaknesses.
+  const systemPrompt = `You are a professional resume rewriter. You receive raw resume text and specific feedback about weaknesses that MUST be fixed.
 
 Your job:
-1. Preserve ALL factual information: names, dates, companies, degrees, job titles, certifications.
-2. Rewrite bullet points using strong action verbs and quantified results (X-Y-Z formula).
-3. Fix all spelling and grammar errors.
-4. Use standard ATS-friendly section headers: "Professional Summary", "Work Experience", "Education", "Skills".
-5. Return ONLY valid JSON (no markdown fences, no explanation) in this exact structure:
+1. READ EVERY FEEDBACK ITEM CAREFULLY and fix each one specifically. This is your #1 priority.
+2. Preserve ALL factual information: names, dates, companies, degrees, job titles, certifications.
+3. Rewrite EVERY bullet point using strong action verbs and quantified results (X-Y-Z formula: "Accomplished [X] as measured by [Y] by doing [Z]").
+4. If a bullet has no metrics, add reasonable context (e.g., "managed a team" → "Managed a cross-functional team to deliver projects on schedule").
+5. Fix all spelling and grammar errors.
+6. Use standard ATS-friendly section headers: "Professional Summary", "Work Experience", "Education", "Skills".
+7. If the summary is weak or missing, write a strong 3-5 sentence Professional Summary with role-specific keywords.
+8. If the skills section is thin, expand it with relevant industry skills and tools.
+9. Return ONLY valid JSON (no markdown fences, no explanation) in this exact structure:
 
 {
   "name": "Full Name",
@@ -69,9 +73,17 @@ Rules:
 - Bullets must start with a strong action verb.
 - If the original resume has additional sections (Projects, Certifications, etc.), include them.
 - Do NOT invent facts, companies, or metrics that aren't in the original.
-- If a metric can be reasonably inferred (e.g., "managed a team" → "Managed a team of X"), keep it vague rather than fabricating specific numbers.`;
+- When a bullet lacks metrics, insert conservative, realistic placeholder numbers based on the role context. Use safe estimates:
+  - Team sizes: 3-8 for junior roles, 8-15 for mid, 15-30 for senior
+  - Percentages: 15-30% improvements (not extreme claims like 90%)
+  - Timeframes: "within 3 months", "over 6 months"
+  - Revenue/cost: keep proportional to company size
+  Examples: "managed a team" → "Managed a team of 5 engineers", "improved performance" → "Improved system performance by 25%", "handled customer issues" → "Resolved 50+ customer issues weekly with 95% satisfaction rate"
+- Mark any inserted placeholder number with [*] at the end of that bullet so the user knows to verify it. Example: "Reduced deployment time by 30% through CI/CD automation [*]"`;
 
-  const userMessage = `Here is the resume text to improve:\n\n---\n${resumeText}\n---\n\n${feedbackSummary ? `Feedback from analysis:\n${feedbackSummary}` : ""}`;
+  const userMessage = feedbackSummary
+    ? `CRITICAL ISSUES TO FIX (address every single one):\n\n${feedbackSummary}\n\n---\n\nOriginal resume text:\n\n${resumeText}`
+    : `Improve the following resume — strengthen bullets with metrics, add a strong summary, and use ATS-friendly headers:\n\n${resumeText}`;
 
   try {
     const message = await client.messages.create({

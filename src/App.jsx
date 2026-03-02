@@ -3,6 +3,7 @@ import { applications } from "./data/applications";
 import { useTailor } from "./hooks/useTailor";
 import { parseResume } from "./utils/parseResume";
 import { analyzeResume } from "./utils/analyzeResume";
+import { scoreATS } from "./utils/atsScoring";
 import { generateResumePdf } from "./utils/generatePdf";
 import Header from "./components/Header";
 import OnboardingView from "./views/OnboardingView";
@@ -30,6 +31,11 @@ const App = () => {
   const [appStatuses, setAppStatuses] = useState(
     applications.map((a) => a.status)
   );
+
+  // ATS scoring state
+  const [jdText, setJdText] = useState("");
+  const [atsScore, setAtsScore] = useState(null);
+  const [atsFeedback, setAtsFeedback] = useState(null);
 
   // Improve resume state
   const [resumeText, setResumeText] = useState("");
@@ -74,6 +80,9 @@ const App = () => {
     quickTailor.reset();
     setQuickTailorJD(false);
     setExpandedFeedback(null);
+    setJdText("");
+    setAtsScore(null);
+    setAtsFeedback(null);
   };
 
   const handleOpenSidebar = () => {
@@ -133,6 +142,39 @@ const App = () => {
     }
   };
 
+  const handleImportResume = async (file) => {
+    setResumeFileName(file.name);
+    setResumeFile(file);
+    setHasResume(true);
+    // Reset improved state on new upload
+    if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
+    setImprovedResumeUrl(null);
+    setImprovedScore(null);
+    setImprovedFeedback(null);
+    if (file.type === "application/pdf") {
+      setAnalyzing(true);
+      setResumeScore(null);
+      setResumeFeedback(null);
+      try {
+        const { text, pageCount } = await parseResume(file);
+        setResumeText(text);
+        const result = analyzeResume(text, pageCount);
+        setResumeScore(result.score);
+        setResumeFeedback(result.feedback);
+      } catch {
+        setResumeScore(null);
+        setResumeFeedback(null);
+        setResumeText("");
+      } finally {
+        setAnalyzing(false);
+      }
+    } else {
+      setResumeScore(null);
+      setResumeFeedback(null);
+      setResumeText("");
+    }
+  };
+
   const handleResetResume = () => {
     setHasResume(false);
     setMode("fix");
@@ -143,6 +185,9 @@ const App = () => {
     setImprovedScore(null);
     setImprovedFeedback(null);
     setResumeText("");
+    setJdText("");
+    setAtsScore(null);
+    setAtsFeedback(null);
   };
 
   return (
@@ -158,38 +203,7 @@ const App = () => {
       />
 
       {tab === "home" && !hasResume && (
-        <OnboardingView onImport={async (file) => {
-          setResumeFileName(file.name);
-          setResumeFile(file);
-          setHasResume(true);
-          // Reset improved state on new upload
-          if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
-          setImprovedResumeUrl(null);
-          setImprovedScore(null);
-          setImprovedFeedback(null);
-          if (file.type === "application/pdf") {
-            setAnalyzing(true);
-            setResumeScore(null);
-            setResumeFeedback(null);
-            try {
-              const { text, pageCount } = await parseResume(file);
-              setResumeText(text);
-              const result = analyzeResume(text, pageCount);
-              setResumeScore(result.score);
-              setResumeFeedback(result.feedback);
-            } catch {
-              setResumeScore(null);
-              setResumeFeedback(null);
-              setResumeText("");
-            } finally {
-              setAnalyzing(false);
-            }
-          } else {
-            setResumeScore(null);
-            setResumeFeedback(null);
-            setResumeText("");
-          }
-        }} />
+        <OnboardingView onImport={handleImportResume} />
       )}
       {tab === "home" && hasResume && mode === "fix" && (
         <FixView
@@ -209,6 +223,7 @@ const App = () => {
           improvedScore={improvedScore}
           improvedFeedback={improvedFeedback}
           onImproveResume={handleImproveResume}
+          onUpdateResume={handleImportResume}
           resumeText={resumeText}
         />
       )}
@@ -223,6 +238,14 @@ const App = () => {
           expandedFeedback={expandedFeedback}
           setExpandedFeedback={setExpandedFeedback}
           onOpenSidebar={handleOpenSidebar}
+          resumeScore={resumeScore}
+          resumeText={resumeText}
+          jdText={jdText}
+          setJdText={setJdText}
+          atsScore={atsScore}
+          setAtsScore={setAtsScore}
+          atsFeedback={atsFeedback}
+          setAtsFeedback={setAtsFeedback}
         />
       )}
       {tab === "log" && (

@@ -1,4 +1,6 @@
+import { useEffect, useRef } from "react";
 import { launchStrength, getStrengthMeta, getATSMeta } from "../utils/scoring";
+import { scoreATS } from "../utils/atsScoring";
 import { launchFeedback } from "../data/feedback";
 import { applications, statusMap } from "../data/applications";
 import ScoreGauge from "../components/ScoreGauge";
@@ -16,9 +18,60 @@ const LaunchView = ({
   expandedFeedback,
   setExpandedFeedback,
   onOpenSidebar,
+  resumeScore,
+  resumeText,
+  jdText,
+  setJdText,
+  atsScore,
+  setAtsScore,
+  atsFeedback,
+  setAtsFeedback,
 }) => {
-  const meta = getStrengthMeta(launchStrength);
-  const atsMeta = getATSMeta(launchStrength);
+  const strength = resumeScore ?? launchStrength;
+  const meta = getStrengthMeta(strength);
+
+  // Use real ATS score when available, fall back to launchStrength
+  const gaugeScore = atsScore !== null ? atsScore : launchStrength;
+  const atsMeta = getATSMeta(gaugeScore);
+
+  // Estimated post-tailor score
+  const afterScore = atsScore !== null ? Math.min(85, atsScore + 15) : null;
+
+  // Debounced ATS scoring
+  const debounceRef = useRef(null);
+  useEffect(() => {
+    if (!jdText.trim() || !resumeText) {
+      setAtsScore(null);
+      setAtsFeedback(null);
+      return;
+    }
+
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const result = scoreATS(resumeText, jdText);
+      setAtsScore(result.score);
+      setAtsFeedback(result.feedback);
+    }, 300);
+
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+    };
+  }, [jdText, resumeText, setAtsScore, setAtsFeedback]);
+
+  const handleJdChange = (e) => {
+    setJdText(e.target.value);
+    // Keep quickTailorJD in sync for tailor button flow
+    if (e.target.value.trim() && !quickTailorJD) setQuickTailorJD(true);
+    if (!e.target.value.trim() && quickTailorJD) setQuickTailorJD(false);
+  };
+
+  // Determine score bar colors
+  const getScoreColor = (score) => {
+    if (score >= 80) return "#16a34a";
+    if (score >= 70) return "#2563eb";
+    if (score >= 60) return "#d97706";
+    return "#dc2626";
+  };
 
   return (
     <div className="max-w-[960px] mx-auto py-8 px-4 sm:px-6">
@@ -34,8 +87,8 @@ const LaunchView = ({
             </h1>
             <p className="text-[13px] text-stone-500">
               Strength:{" "}
-              <span className="text-green-600 font-bold font-mono">
-                {launchStrength}%
+              <span className="font-bold font-mono" style={{ color: meta.color }}>
+                {strength}%
               </span>{" "}
               · Let's find your next role.
             </p>
@@ -99,37 +152,24 @@ const LaunchView = ({
               <ScoreTypeBadge type="ats" />
             </div>
             <p className="text-[10px] text-stone-400 mt-1 mb-3.5 leading-relaxed">
-              Your Resume Strength is {launchStrength}% — but each job needs a
+              Your Resume Strength is {strength}% — but each job needs a
               different keyword mix. The ATS Score measures how well your resume
               matches a specific job description.
             </p>
 
-            {/* JD input area */}
-            <div
-              onClick={() => setQuickTailorJD(!quickTailorJD)}
-              className={`p-4 rounded-xl min-h-[90px] bg-warm-bg cursor-text mb-3.5 border-[1.5px] border-dashed ${
-                quickTailorJD ? "border-brand" : "border-stone-200"
+            {/* JD textarea */}
+            <textarea
+              value={jdText}
+              onChange={handleJdChange}
+              placeholder="Paste a job description here..."
+              className={`w-full p-4 rounded-xl min-h-[90px] bg-warm-bg resize-y mb-3.5 border-[1.5px] border-dashed text-xs leading-[1.7] text-stone-700 font-sans placeholder:text-stone-400 focus:outline-none focus:border-brand ${
+                jdText.trim() ? "border-brand" : "border-stone-200"
               }`}
-            >
-              {quickTailorJD ? (
-                <p className="text-xs text-stone-700 leading-[1.7]">
-                  <span className="font-bold text-brand">
-                    Data Scientist — Safaricom PLC
-                  </span>
-                  <br />
-                  Proficiency in Python, TensorFlow/PyTorch, SQL, cloud
-                  platforms (AWS/GCP). Experience with A/B testing and
-                  stakeholder management required...
-                </p>
-              ) : (
-                <p className="text-xs text-stone-400">
-                  Paste a job description here...
-                </p>
-              )}
-            </div>
+              rows={4}
+            />
 
-            {/* Pre-tailor state */}
-            {quickTailorJD && !quickTailor.active && !quickTailor.done && (
+            {/* Pre-tailor state: show when we have a real ATS score */}
+            {atsScore !== null && !quickTailor.active && !quickTailor.done && (
               <div>
                 <div className="p-3 px-3.5 rounded-[10px] bg-warm-bg border border-warm-border mb-3.5">
                   <div className="flex items-center gap-1.5 mb-2">
@@ -142,29 +182,63 @@ const LaunchView = ({
                     <span className="text-[10px] text-stone-500">
                       Current match
                     </span>
-                    <span className="text-[11px] font-mono text-red-600 font-semibold">
-                      68%
+                    <span
+                      className="text-[11px] font-mono font-semibold"
+                      style={{ color: getScoreColor(atsScore) }}
+                    >
+                      {atsScore}%
                     </span>
                   </div>
                   <div className="h-1 rounded bg-slate-100 overflow-hidden mb-2">
-                    <div className="h-full w-[68%] bg-red-600 rounded" />
+                    <div
+                      className="h-full rounded transition-[width] duration-500"
+                      style={{
+                        width: `${atsScore}%`,
+                        backgroundColor: getScoreColor(atsScore),
+                      }}
+                    />
                   </div>
                   <div className="flex justify-between items-center mb-1">
                     <span className="text-[10px] text-stone-500">
                       After tailoring
                     </span>
                     <span className="text-[11px] font-mono text-green-600 font-semibold">
-                      ~83%
+                      ~{afterScore}%
                     </span>
                   </div>
                   <div className="h-1 rounded bg-slate-100 overflow-hidden">
-                    <div className="h-full w-[83%] bg-green-600 rounded" />
+                    <div
+                      className="h-full bg-green-600 rounded transition-[width] duration-500"
+                      style={{ width: `${afterScore}%` }}
+                    />
                   </div>
                   <p className="text-[9px] text-stone-400 mt-2">
-                    Your resume is strong, but this role needs keywords you
-                    haven't emphasized. Tailoring will fix that.
+                    {atsScore >= 80
+                      ? "Your resume is a strong match for this role. Tailoring can fine-tune keyword placement."
+                      : atsScore >= 60
+                        ? "Your resume is decent, but this role needs keywords you haven't emphasized. Tailoring will fix that."
+                        : "Significant keyword gaps detected. Tailoring will add missing terms and improve your match rate."}
                   </p>
                 </div>
+
+                {/* ATS Feedback items */}
+                {atsFeedback && atsFeedback.length > 0 && (
+                  <div className="flex flex-col gap-1.5 mb-3.5">
+                    {atsFeedback.map((item, i) => (
+                      <FeedbackItem
+                        key={i}
+                        item={item}
+                        isOpen={expandedFeedback === `ats${i}`}
+                        onToggle={() =>
+                          setExpandedFeedback(
+                            expandedFeedback === `ats${i}` ? null : `ats${i}`
+                          )
+                        }
+                      />
+                    ))}
+                  </div>
+                )}
+
                 <button
                   onClick={quickTailor.start}
                   className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
@@ -184,7 +258,7 @@ const LaunchView = ({
                   Tailoring for this role...
                 </p>
                 <p className="text-[11px] text-stone-400 mb-3.5">
-                  Optimizing ATS Score · Data Scientist · Safaricom
+                  Optimizing ATS Score · analyzing keywords
                 </p>
                 <div className="h-1 rounded bg-slate-100 overflow-hidden">
                   <div
@@ -198,12 +272,15 @@ const LaunchView = ({
             {/* Tailor done */}
             {quickTailor.done && (
               <div>
-                <ATSResultCard before={68} after={83} />
+                <ATSResultCard
+                  before={atsScore ?? 68}
+                  after={afterScore ?? 83}
+                />
                 <div className="mb-3.5 mt-2.5">
                   {[
-                    "6 bullets rewritten with role-specific metrics",
-                    "4 keywords added (TensorFlow, AWS, GCP, A/B Testing)",
-                    "Summary reframed around predictive modeling",
+                    "Bullets rewritten with role-specific metrics",
+                    "Missing keywords added to relevant sections",
+                    "Summary reframed around job requirements",
                     "Skills reordered to match JD priority",
                   ].map((t, i) => (
                     <div key={i} className="flex gap-2 items-center py-1">
@@ -274,15 +351,22 @@ const LaunchView = ({
               ATS Score
             </h3>
             <p className="text-[10px] text-stone-400">
-              How well does your resume pass automated screening?
+              {atsScore !== null
+                ? "How well your resume matches this job description"
+                : "How well does your resume pass automated screening?"}
             </p>
-            <ScoreGauge value={launchStrength} type="ats" />
+            <ScoreGauge value={gaugeScore} type="ats" />
             <p
               className="text-[10px] font-medium mt-2"
               style={{ color: atsMeta.color }}
             >
               {atsMeta.sub}
             </p>
+            {atsScore === null && (
+              <p className="text-[9px] text-stone-400 mt-1">
+                Paste a job description to see your real ATS score
+              </p>
+            )}
             <p
               onClick={() => {
                 setHasResume(false);
@@ -296,10 +380,10 @@ const LaunchView = ({
 
           <div className="bg-white rounded-2xl p-[18px] border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)]">
             <p className="text-xs font-bold text-[#1a1a1a] mb-2.5">
-              What you should fix:
+              {atsFeedback ? "ATS Analysis:" : "What you should fix:"}
             </p>
             <div className="flex flex-col gap-1.5">
-              {launchFeedback.map((item, i) => (
+              {(atsFeedback || launchFeedback).map((item, i) => (
                 <FeedbackItem
                   key={i}
                   item={item}

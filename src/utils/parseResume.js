@@ -17,8 +17,28 @@ export async function parseResume(file) {
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
       const content = await page.getTextContent();
-      const strings = content.items.map((item) => item.str);
-      pages.push(strings.join(" "));
+      const items = content.items;
+
+      if (items.length === 0) {
+        pages.push("");
+        continue;
+      }
+
+      // Use Y-position to detect line breaks
+      let result = items[0].str;
+      for (let j = 1; j < items.length; j++) {
+        const prev = items[j - 1];
+        const curr = items[j];
+        const prevY = prev.transform[5];
+        const currY = curr.transform[5];
+        // If Y position changed, it's a new line
+        if (Math.abs(currY - prevY) > 2) {
+          result += "\n" + curr.str;
+        } else {
+          result += " " + curr.str;
+        }
+      }
+      pages.push(result);
     }
 
     return { text: pages.join("\n"), pageCount: pdf.numPages };

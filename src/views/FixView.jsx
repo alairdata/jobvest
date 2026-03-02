@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { getStrengthMeta } from "../utils/scoring";
 import { fixFeedback as defaultFeedback } from "../data/feedback";
 import ScoreGauge from "../components/ScoreGauge";
@@ -22,9 +22,11 @@ const FixView = ({
   improvedScore,
   improvedFeedback,
   onImproveResume,
+  onUpdateResume,
   resumeText,
 }) => {
   const [showImproved, setShowImproved] = useState(true);
+  const updateInputRef = useRef(null);
   const isPdf = resumeFileType === "application/pdf";
   const hasImproved = !!improvedResumeUrl;
 
@@ -54,7 +56,21 @@ const FixView = ({
         <div className="w-full md:flex-[1.2_1_460px] md:min-w-[380px] md:sticky md:top-4 md:self-start bg-white rounded-2xl border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)] overflow-hidden flex flex-col" style={{ maxHeight: "calc(100vh - 32px)" }}>
           <div className="py-3 px-[18px] bg-warm-bg border-b border-warm-border flex justify-between items-center shrink-0">
             <span className="text-[11px] font-semibold text-stone-500">📄 {activeFileName || "Resume Preview"}</span>
-            <button className="py-1 px-2.5 rounded-md border border-stone-200 bg-white text-stone-600 text-[10px] font-semibold cursor-pointer font-sans">
+            <input
+              ref={updateInputRef}
+              type="file"
+              accept=".pdf,.doc,.docx"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                if (file) onUpdateResume(file);
+                e.target.value = "";
+              }}
+            />
+            <button
+              onClick={() => updateInputRef.current?.click()}
+              className="py-1 px-2.5 rounded-md border border-stone-200 bg-white text-stone-600 text-[10px] font-semibold cursor-pointer font-sans"
+            >
               Update
             </button>
           </div>
@@ -82,6 +98,15 @@ const FixView = ({
               >
                 Improved
               </button>
+            </div>
+          )}
+
+          {isShowingImproved && (
+            <div className="py-2.5 px-4 bg-amber-50 border-b border-amber-200 flex gap-2 items-start shrink-0">
+              <span className="text-sm shrink-0">⚠️</span>
+              <p className="text-[10px] text-amber-800 leading-relaxed">
+                <strong>Review before using:</strong> Bullets marked with [*] contain estimated numbers. Update them with your real figures before submitting applications.
+              </p>
             </div>
           )}
 
