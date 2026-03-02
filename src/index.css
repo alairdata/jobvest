@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  --font-serif: "Source Serif 4", Georgia, serif;
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+
+  --color-brand: #ff8c42;
+  --color-brand-dark: #ff6b35;
+  --color-warm-border: #f0ece6;
+  --color-warm-bg: #fefcf9;
+  --color-warm-divider: #faf8f5;
+}
+
+@keyframes gp {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+@keyframes sbp {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
