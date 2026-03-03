@@ -91,7 +91,30 @@ const COMMON_TYPOS = {
 };
 
 /**
- * Analyze extracted resume text across 8 categories (totaling 100 pts).
+ * Estimate total years of experience from date ranges in resume text.
+ * Looks for patterns like "2018 - 2022", "Jan 2019 - Present", "2015 - current".
+ * Returns the span from earliest year to latest year, or 0 if none found.
+ */
+function estimateExperienceYears(text) {
+  const currentYear = new Date().getFullYear();
+  const dateRangePattern = /(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+)?((?:19|20)\d{2})\s*[-–—to]+\s*(?:(?:jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)[a-z]*\.?\s+)?((?:19|20)\d{2}|present|current|now|ongoing)/gi;
+  let earliest = Infinity;
+  let latest = 0;
+  let match;
+  while ((match = dateRangePattern.exec(text)) !== null) {
+    const startYear = parseInt(match[1], 10);
+    const endRaw = match[2].toLowerCase();
+    const endYear = /present|current|now|ongoing/.test(endRaw) ? currentYear : parseInt(endRaw, 10);
+    if (startYear >= 1970 && startYear <= currentYear && endYear >= startYear && endYear <= currentYear) {
+      if (startYear < earliest) earliest = startYear;
+      if (endYear > latest) latest = endYear;
+    }
+  }
+  return latest > 0 ? latest - earliest : 0;
+}
+
+/**
+ * Analyze extracted resume text across 9 categories (totaling 100 pts).
  * Returns { score: number, feedback: Array<{section, status, msg, details}> }
  */
 export function analyzeResume(text, pageCount = 1) {
@@ -99,7 +122,7 @@ export function analyzeResume(text, pageCount = 1) {
   const feedback = [];
   let total = 0;
 
-  // ── 1. Contact Info (12 pts) ──
+  // ── 1. Contact Info (10 pts) ──
   const emailMatch = text.match(/[\w.-]+@[\w.-]+\.\w{2,}/);
   const hasEmail = !!emailMatch;
   const hasPhone = /(\+?\d[\d\s\-().]{7,}\d)/.test(text);
@@ -143,13 +166,13 @@ export function analyzeResume(text, pageCount = 1) {
 
   // Scoring: base points for fields present, then deduct for email red flags
   if (contactHits === 3 && emailFlags.length === 0) {
-    total += 12;
+    total += 10;
     feedback.push({ section: "Contact Information", status: "good", msg: "All key fields present and professional", details: "Email, phone, and profile link (LinkedIn/GitHub) detected. Your email looks professional. No changes needed." });
   } else if (contactHits === 3 && emailFlags.length > 0) {
-    total += 8;
+    total += 7;
     feedback.push({ section: "Contact Information", status: "warning", msg: "All fields present but email needs attention", details: `All 3 contact fields detected, but: ${emailFlags.join(". ")}.` });
   } else if (contactHits >= 1) {
-    total += emailFlags.length > 0 ? 4 : 6;
+    total += emailFlags.length > 0 ? 3 : 5;
     const missing = [];
     if (!hasEmail) missing.push("email");
     if (!hasPhone) missing.push("phone number");
@@ -160,9 +183,12 @@ export function analyzeResume(text, pageCount = 1) {
     feedback.push({ section: "Contact Information", status: "error", msg: "No contact information detected", details: "We couldn't find an email, phone number, or profile link. Make sure they are present in plain text (not embedded in images)." });
   }
 
-  // ── 2. Professional Summary (13 pts) ──
-  const summaryAliases = ["summary", "objective", "profile", "about me", "professional summary", "career objective"];
+  // ── 2. Professional Summary (12 pts) ──
+  const summaryLabels = ["professional summary", "summary", "profile", "about me"];
+  const objectiveLabels = ["career objective", "objective"];
+  const summaryAliases = [...summaryLabels, ...objectiveLabels];
   const hasSummarySection = summaryAliases.some((a) => lower.includes(a));
+  const isObjectiveHeading = !summaryLabels.some((a) => lower.includes(a)) && objectiveLabels.some((a) => lower.includes(a));
   let summaryText = "";
   if (hasSummarySection) {
     for (const alias of summaryAliases) {
@@ -177,11 +203,14 @@ export function analyzeResume(text, pageCount = 1) {
   const roleTerms = ["engineer", "developer", "analyst", "manager", "designer", "scientist", "consultant", "specialist", "lead", "architect", "coordinator"];
   const hasRoleTerms = roleTerms.some((t) => lower.includes(t));
 
-  if (hasSummarySection && summaryWordCount > 30 && hasRoleTerms) {
-    total += 13;
+  if (isObjectiveHeading) {
+    total += 5;
+    feedback.push({ section: "Professional Summary", status: "warning", msg: "\"Objective\" statements are outdated — switch to a Professional Summary", details: "Objective sections (e.g. 'I want a job where...') are considered outdated by most recruiters. Replace with a 'Professional Summary' that highlights your value proposition in 3-5 sentences. Capped at 5/12 pts." });
+  } else if (hasSummarySection && summaryWordCount > 30 && hasRoleTerms) {
+    total += 12;
     feedback.push({ section: "Professional Summary", status: "good", msg: "Strong summary with role-specific language", details: "Your summary is a good length and contains relevant role keywords. Nice work." });
   } else if (hasSummarySection) {
-    total += 7;
+    total += 6;
     const issues = [];
     if (summaryWordCount <= 30) issues.push("it's too short (aim for 3-5 sentences)");
     if (!hasRoleTerms) issues.push("it lacks role-specific terms");
@@ -190,7 +219,7 @@ export function analyzeResume(text, pageCount = 1) {
     feedback.push({ section: "Professional Summary", status: "error", msg: "No summary or objective section found", details: "Add a 'Professional Summary' section at the top with 3-5 sentences highlighting your value proposition and key strengths." });
   }
 
-  // ── 3. Skills (13 pts) ──
+  // ── 3. Skills (12 pts) ──
   const skillAliases = ["skills", "technical skills", "core competencies", "technologies", "tools"];
   const hasSkillSection = skillAliases.some((a) => lower.includes(a));
   let skillsText = "";
@@ -213,10 +242,10 @@ export function analyzeResume(text, pageCount = 1) {
   const foundTrending = trendingKeywords.filter((k) => lower.includes(k));
 
   if (hasSkillSection && skillCount >= 8) {
-    total += 13;
+    total += 12;
     feedback.push({ section: "Skills", status: "good", msg: `${skillCount} skills detected${foundTrending.length ? ` incl. trending: ${foundTrending.slice(0, 4).join(", ")}` : ""}`, details: "Good variety of skills listed. Consider grouping them into categories (Languages, Frameworks, Tools) for even better readability." });
   } else if (hasSkillSection && skillCount >= 4) {
-    total += 8;
+    total += 7;
     feedback.push({ section: "Skills", status: "warning", msg: `Only ${skillCount} skills found — aim for 8+`, details: `Add more relevant skills.${foundTrending.length === 0 ? " Include trending tools like Python, React, AWS, Docker, or Figma depending on your field." : ""}` });
   } else if (hasSkillSection) {
     total += 3;
@@ -225,18 +254,19 @@ export function analyzeResume(text, pageCount = 1) {
     feedback.push({ section: "Skills", status: "error", msg: "No skills section detected", details: "Add a 'Skills' section listing at least 8 relevant technical and soft skills. Use comma-separated or bulleted format for ATS compatibility." });
   }
 
-  // ── 4. Work History (15 pts) ──
+  // ── 4. Work History (14 pts) ──
   const workAliases = ["experience", "work history", "employment", "professional experience", "work experience"];
   const hasWorkSection = workAliases.some((a) => lower.includes(a));
   const bullets = text.split(/\n/).filter((l) => /^\s*[•\-*▪●]\s/.test(l) || /^\s*\d+\.\s/.test(l));
   const bulletCount = bullets.length;
-  const quantifiedBullets = bullets.filter((b) => /\d+%|\$\d|#?\d{2,}/.test(b));
+  const quantifiedBulletRegex = /\d+%|\$[\d,.]+[KkMmBb]?|\b\d{1,3}(,\d{3})+\b|\b\d+[KkMmBb]\b|\b(increased|decreased|reduced|improved|grew|boosted|cut|saved|generated|raised|lowered|expanded|shrank|doubled|tripled).*\b\d+\b|\b\d+\s*(users|clients|customers|employees|projects|teams|members|accounts|servers|applications|reports|tickets|endpoints|pages|records|transactions|locations|stores|units)/i;
+  const quantifiedBullets = bullets.filter((b) => quantifiedBulletRegex.test(b));
 
   if (hasWorkSection && bulletCount >= 6 && quantifiedBullets.length >= 3) {
-    total += 15;
+    total += 14;
     feedback.push({ section: "Work History", status: "good", msg: `${bulletCount} bullets, ${quantifiedBullets.length} with quantified results`, details: "Great use of the X-Y-Z formula with measurable achievements. This makes a strong impression on recruiters." });
   } else if (hasWorkSection && bulletCount >= 3) {
-    total += 9;
+    total += 8;
     const tip = quantifiedBullets.length === 0 ? "None of your bullets include numbers or percentages" : `Only ${quantifiedBullets.length} bullet(s) include metrics`;
     feedback.push({ section: "Work History", status: "warning", msg: `${bulletCount} bullets found — ${tip}`, details: "Use the X-Y-Z formula: 'Accomplished [X] as measured by [Y] by doing [Z].' Example: 'Reduced report time by 60% by building automated Python pipelines.'" });
   } else if (hasWorkSection) {
@@ -266,14 +296,15 @@ export function analyzeResume(text, pageCount = 1) {
     feedback.push({ section: "Education", status: "error", msg: "No education section detected", details: "Add an 'Education' section with your degree, institution, and graduation year. Include relevant coursework if you're early-career." });
   }
 
-  // ── 6. Bullet Quality (15 pts) ──
+  // ── 6. Bullet Quality (14 pts) ──
   const bulletLines = bullets.map((b) => b.replace(/^\s*[•\-*▪●\d.]\s*/, "").toLowerCase());
   let strongCount = 0;
   let decentCount = 0;
 
   for (const line of bulletLines) {
-    const hasVerb = POWER_VERBS.some((v) => line.includes(v));
-    const hasMetric = /\d+%|\$[\d,.]+|\d{2,}/.test(line);
+    const firstWord = line.split(/\s+/)[0] || "";
+    const hasVerb = POWER_VERBS.some((v) => firstWord === v);
+    const hasMetric = /\d+%|\$[\d,.]+[KkMmBb]?|\b\d{1,3}(,\d{3})+\b|\b\d+[KkMmBb]\b/.test(line);
     if (hasVerb && hasMetric) strongCount++;
     else if (hasVerb || hasMetric) decentCount++;
   }
@@ -284,10 +315,10 @@ export function analyzeResume(text, pageCount = 1) {
   if (totalBullets === 0) {
     feedback.push({ section: "Bullet Quality", status: "error", msg: "No bullet points found to evaluate", details: "Add bullet points under your work experience using action verbs and measurable results. Example: 'Increased sales by 25% by redesigning the onboarding funnel.'" });
   } else if (strongPct >= 0.6) {
-    total += 15;
+    total += 14;
     feedback.push({ section: "Bullet Quality", status: "good", msg: `${strongCount} of ${totalBullets} bullets use the action-verb + metric formula`, details: "Excellent bullet quality. Your accomplishments are clearly quantified and action-driven." });
   } else if (strongPct >= 0.4) {
-    total += 10;
+    total += 9;
     feedback.push({ section: "Bullet Quality", status: "warning", msg: `${strongCount} of ${totalBullets} bullets use the action-verb + metric formula`, details: "Good start, but aim for 60%+ of bullets to combine a power verb with a measurable result. Revise weaker bullets to include numbers or percentages." });
   } else if (strongPct >= 0.2) {
     total += 5;
@@ -296,7 +327,7 @@ export function analyzeResume(text, pageCount = 1) {
     feedback.push({ section: "Bullet Quality", status: "error", msg: `${strongCount} of ${totalBullets} bullets use the action-verb + metric formula`, details: "Almost none of your bullets combine action verbs with metrics. Recruiters scan for quantified achievements — rewrite each bullet to start with a power verb and include a number or percentage." });
   }
 
-  // ── 7. Formatting (12 pts) ──
+  // ── 7. Formatting (10 pts) ──
   let standardFound = 0;
   const foundStandard = [];
   const missingStandard = [];
@@ -316,19 +347,32 @@ export function analyzeResume(text, pageCount = 1) {
 
   const redFlagsFound = RED_FLAG_HEADERS.filter((h) => lower.includes(h));
 
+  let formattingScore = 0;
   if (standardFound === 4) {
-    total += 12;
+    formattingScore = 10;
     const extra = redFlagsFound.length ? ` Note: creative header "${redFlagsFound[0]}" found — consider renaming for ATS.` : "";
     feedback.push({ section: "Formatting", status: "good", msg: "All 4 standard section headers found", details: `Your resume uses standard, ATS-friendly headers for Experience, Education, Skills, and Summary.${extra}` });
   } else if (standardFound === 3) {
-    total += 8;
+    formattingScore = 7;
     feedback.push({ section: "Formatting", status: "warning", msg: `3/4 standard headers found — missing: ${missingStandard.join(", ")}`, details: `Use standard headers like "Work Experience," "Education," "Skills," and "Professional Summary" for maximum ATS compatibility.${redFlagsFound.length ? ` Creative header "${redFlagsFound[0]}" may confuse parsers.` : ""}` });
   } else if (standardFound === 2) {
-    total += 4;
+    formattingScore = 4;
     feedback.push({ section: "Formatting", status: "warning", msg: `Only 2/4 standard headers found — missing: ${missingStandard.join(", ")}`, details: `Many ATS systems rely on standard section names. Add clear headers for ${missingStandard.join(" and ")}.${redFlagsFound.length ? ` Avoid creative headers like "${redFlagsFound.join('", "')}" — rename them to standard equivalents.` : ""}` });
   } else {
     feedback.push({ section: "Formatting", status: "error", msg: `Only ${standardFound}/4 standard headers found`, details: `Your resume is missing most standard section headers. ATS systems may fail to parse it correctly. Use: "Professional Summary," "Work Experience," "Skills," and "Education."${redFlagsFound.length ? ` Replace creative headers like "${redFlagsFound.join('", "')}" with standard ones.` : ""}` });
   }
+
+  // Wall of text penalty: deduct 1 pt per line > 300 chars (max -3)
+  const allLines = text.split(/\n/);
+  const longLines = allLines.filter((l) => l.trim().length > 300);
+  const wallPenalty = Math.min(longLines.length, 3);
+  formattingScore = Math.max(formattingScore - wallPenalty, 0);
+  if (wallPenalty > 0) {
+    const lastFeedback = feedback[feedback.length - 1];
+    lastFeedback.details += ` Wall-of-text penalty: ${wallPenalty} line(s) exceed 300 characters — break them into shorter bullets or sentences (-${wallPenalty} pt).`;
+    if (lastFeedback.status === "good") lastFeedback.status = "warning";
+  }
+  total += formattingScore;
 
   // ── 8. Spelling & Readability (10 pts) ──
   // Typo detection (6 pts)
@@ -387,6 +431,39 @@ export function analyzeResume(text, pageCount = 1) {
     status: spellingStatus,
     msg: `${typoCount} typo(s) found · ${densityNote.split("—")[0].trim().toLowerCase()}`,
     details: `${typoDetail} ${densityNote}. (${Math.round(charsPerPage)} chars/page across ${pageCount} page${pageCount > 1 ? "s" : ""})`,
+  });
+
+  // ── 9. Page Length (8 pts) ──
+  const experienceYears = estimateExperienceYears(text);
+  let pageLengthScore;
+  let pageLengthNote;
+
+  if (experienceYears > 0 && experienceYears <= 5) {
+    if (pageCount === 1) { pageLengthScore = 8; pageLengthNote = "1-page resume is ideal for your experience level (~" + experienceYears + " years)."; }
+    else if (pageCount === 2) { pageLengthScore = 4; pageLengthNote = "With ~" + experienceYears + " years of experience, a 1-page resume is recommended. Consider trimming to one page."; }
+    else { pageLengthScore = 1; pageLengthNote = "With ~" + experienceYears + " years of experience, " + pageCount + " pages is too long. Aim for 1 page."; }
+  } else if (experienceYears > 5 && experienceYears <= 15) {
+    if (pageCount === 2) { pageLengthScore = 8; pageLengthNote = "2-page resume is ideal for your experience level (~" + experienceYears + " years)."; }
+    else if (pageCount === 1) { pageLengthScore = 5; pageLengthNote = "With ~" + experienceYears + " years of experience, you likely have enough content for 2 pages. Consider expanding."; }
+    else { pageLengthScore = 3; pageLengthNote = "With ~" + experienceYears + " years of experience, " + pageCount + " pages may be excessive. Aim for 2 pages."; }
+  } else if (experienceYears > 15) {
+    if (pageCount >= 2 && pageCount <= 3) { pageLengthScore = 8; pageLengthNote = pageCount + "-page resume is appropriate for your extensive experience (~" + experienceYears + " years)."; }
+    else if (pageCount === 1) { pageLengthScore = 4; pageLengthNote = "With ~" + experienceYears + " years of experience, a 1-page resume undersells your career. Expand to 2-3 pages."; }
+    else { pageLengthScore = 3; pageLengthNote = "With ~" + experienceYears + " years of experience, " + pageCount + " pages is still excessive. Aim for 2-3 pages."; }
+  } else {
+    // Can't detect years — use safe defaults
+    if (pageCount === 1) { pageLengthScore = 8; pageLengthNote = "1-page resume is a safe default length."; }
+    else if (pageCount === 2) { pageLengthScore = 6; pageLengthNote = "2-page resume is acceptable, but ensure all content is relevant."; }
+    else { pageLengthScore = 2; pageLengthNote = pageCount + " pages is long — most resumes should be 1-2 pages unless you have 15+ years of experience."; }
+  }
+
+  total += pageLengthScore;
+  const pageLengthStatus = pageLengthScore >= 7 ? "good" : pageLengthScore >= 4 ? "warning" : "error";
+  feedback.push({
+    section: "Page Length",
+    status: pageLengthStatus,
+    msg: `${pageCount} page${pageCount !== 1 ? "s" : ""} · ${experienceYears > 0 ? "~" + experienceYears + " years detected" : "experience years not detected"}`,
+    details: `${pageLengthNote} (${pageLengthScore}/8 pts)`,
   });
 
   return { score: Math.min(total, 100), feedback };
