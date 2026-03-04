@@ -87,10 +87,41 @@ export function generateResumePdf(data) {
     doc.line(MARGIN, y, PAGE_W - MARGIN, y);
     y += 8;
 
-    // Content paragraph (e.g., Summary, Skills)
+    // Content: Skills as 2-column bullet list, others as paragraph
     if (section.content) {
-      drawText(section.content, MARGIN, 10);
-      y += 6;
+      const isSkills = /skills/i.test(section.title);
+      if (isSkills) {
+        const skills = section.content.split(/[,;|]/).map((s) => s.trim()).filter(Boolean);
+        const colW = (CONTENT_W - 14) / 2;
+        const lineH = 10 * LINE_HEIGHT;
+        const rows = Math.ceil(skills.length / 2);
+
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor("#1a1a1a");
+
+        for (let r = 0; r < rows; r++) {
+          checkPageBreak(lineH);
+          // Left column
+          const left = skills[r * 2];
+          if (left) {
+            doc.text("\u2022", MARGIN + 2, y);
+            doc.text(left, MARGIN + 12, y);
+          }
+          // Right column
+          const right = skills[r * 2 + 1];
+          if (right) {
+            const colStart = MARGIN + CONTENT_W / 2 + 4;
+            doc.text("\u2022", colStart, y);
+            doc.text(right, colStart + 10, y);
+          }
+          y += lineH;
+        }
+        y += 4;
+      } else {
+        drawText(section.content, MARGIN, 10);
+        y += 6;
+      }
     }
 
     // Items (e.g., Work Experience entries, Education entries)
