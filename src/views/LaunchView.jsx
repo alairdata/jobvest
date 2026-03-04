@@ -30,8 +30,8 @@ const LaunchView = ({
   const strength = resumeScore ?? launchStrength;
   const meta = getStrengthMeta(strength);
 
-  // Use real ATS score when available, fall back to launchStrength
-  const gaugeScore = atsScore !== null ? atsScore : launchStrength;
+  // Use real ATS score when available, fall back to resume strength
+  const gaugeScore = atsScore !== null ? atsScore : strength;
   const atsMeta = getATSMeta(gaugeScore);
 
   // Estimated post-tailor score
