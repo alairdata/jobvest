@@ -127,13 +127,28 @@ const App = () => {
       const pdfUrl = generateResumePdf(data);
       setImprovedResumeUrl(pdfUrl);
 
-      // Fetch the generated PDF blob to extract text for rescoring
-      const pdfRes = await fetch(pdfUrl);
-      const pdfBlob = await pdfRes.blob();
-      const pdfFile = new File([pdfBlob], "improved-resume.pdf", {
-        type: "application/pdf",
-      });
-      const { text: improvedText, pageCount } = await parseResume(pdfFile);
+      // Build plain text directly from structured JSON for accurate rescoring
+      // (avoids lossy PDF → text round-trip that mangles bullets and headers)
+      const textParts = [];
+      if (data.name) textParts.push(data.name);
+      if (data.contact) textParts.push(data.contact);
+      for (const section of data.sections || []) {
+        textParts.push(`\n${section.title}`);
+        if (section.content) textParts.push(section.content);
+        if (section.items) {
+          for (const item of section.items) {
+            if (item.title) textParts.push(item.title);
+            if (item.subtitle) textParts.push(item.subtitle);
+            if (item.bullets) {
+              for (const bullet of item.bullets) {
+                textParts.push(`• ${bullet}`);
+              }
+            }
+          }
+        }
+      }
+      const improvedText = textParts.join("\n");
+      const pageCount = Math.ceil(improvedText.length / 3000) || 1;
       const result = analyzeResume(improvedText, pageCount);
 
       setImprovedScore(result.score);
