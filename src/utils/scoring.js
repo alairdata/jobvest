@@ -6,10 +6,10 @@ export const getStrengthMeta = (v) => {
 };
 
 export const getATSMeta = (v) => {
-  if (v >= 95) return { color: "#dc2626", label: "SPAM RISK", sub: "May look like keyword stuffing to recruiters" };
-  if (v >= 80) return { color: "#16a34a", label: "IDEAL", sub: "Safe zone (80-85%)" };
-  if (v >= 75) return { color: "#2563eb", label: "PASS", sub: "Minimum pass — tailoring can improve" };
-  return { color: "#dc2626", label: "LOW", sub: "Likely filtered out by ATS" };
+  if (v >= 85) return { color: "#16a34a", label: "EXCELLENT", sub: "Strong match — resume covers most JD requirements" };
+  if (v >= 70) return { color: "#2563eb", label: "GOOD", sub: "Good match — some gaps to address" };
+  if (v >= 50) return { color: "#d97706", label: "PARTIAL", sub: "Significant gaps — tailoring recommended" };
+  return { color: "#dc2626", label: "LOW", sub: "Major misalignment — needs tailoring" };
 };
 
 export const sIcon = (s) => {

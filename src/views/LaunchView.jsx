@@ -1,6 +1,5 @@
-import { useEffect, useRef } from "react";
+import { useState } from "react";
 import { launchStrength, getStrengthMeta, getATSMeta } from "../utils/scoring";
-import { scoreATS } from "../utils/atsScoring";
 import { launchFeedback } from "../data/feedback";
 import { applications, statusMap } from "../data/applications";
 import ScoreGauge from "../components/ScoreGauge";
@@ -27,6 +26,8 @@ const LaunchView = ({
   atsFeedback,
   setAtsFeedback,
 }) => {
+  const [scoring, setScoring] = useState(false);
+
   const strength = resumeScore ?? launchStrength;
   const meta = getStrengthMeta(strength);
 
@@ -35,34 +36,41 @@ const LaunchView = ({
   const atsMeta = getATSMeta(gaugeScore);
 
   // Estimated post-tailor score
-  const afterScore = atsScore !== null ? Math.min(85, atsScore + 15) : null;
+  const afterScore = atsScore !== null ? Math.min(95, atsScore + 15) : null;
 
-  // Debounced ATS scoring
-  const debounceRef = useRef(null);
-  useEffect(() => {
-    if (!jdText.trim() || !resumeText) {
-      setAtsScore(null);
-      setAtsFeedback(null);
-      return;
+  const handleScoreMatch = async () => {
+    if (!jdText.trim() || !resumeText || scoring) return;
+    setScoring(true);
+    try {
+      const res = await fetch("/api/ats-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, jdText }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || "Failed to score resume");
+      }
+      const data = await res.json();
+      setAtsScore(data.score);
+      setAtsFeedback(data.feedback);
+    } catch (err) {
+      alert("Scoring failed: " + err.message);
+    } finally {
+      setScoring(false);
     }
-
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(() => {
-      const result = scoreATS(resumeText, jdText);
-      setAtsScore(result.score);
-      setAtsFeedback(result.feedback);
-    }, 300);
-
-    return () => {
-      if (debounceRef.current) clearTimeout(debounceRef.current);
-    };
-  }, [jdText, resumeText, setAtsScore, setAtsFeedback]);
+  };
 
   const handleJdChange = (e) => {
     setJdText(e.target.value);
     // Keep quickTailorJD in sync for tailor button flow
     if (e.target.value.trim() && !quickTailorJD) setQuickTailorJD(true);
     if (!e.target.value.trim() && quickTailorJD) setQuickTailorJD(false);
+    // Reset score when JD changes
+    if (atsScore !== null) {
+      setAtsScore(null);
+      setAtsFeedback(null);
+    }
   };
 
   // Determine score bar colors
@@ -167,6 +175,24 @@ const LaunchView = ({
               }`}
               rows={4}
             />
+
+            {/* Score My Match button */}
+            {jdText.trim() && atsScore === null && !quickTailor.active && !quickTailor.done && (
+              <button
+                onClick={handleScoreMatch}
+                disabled={scoring || !resumeText}
+                className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)] mb-3.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                {scoring ? (
+                  <>
+                    <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Scoring...
+                  </>
+                ) : (
+                  "✧ Score My Match"
+                )}
+              </button>
+            )}
 
             {/* Pre-tailor state: show when we have a real ATS score */}
             {atsScore !== null && !quickTailor.active && !quickTailor.done && (
