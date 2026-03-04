@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { launchStrength, getStrengthMeta, getATSMeta } from "../utils/scoring";
 import { launchFeedback } from "../data/feedback";
 import { applications, statusMap } from "../data/applications";
@@ -27,6 +27,13 @@ const LaunchView = ({
   setAtsFeedback,
 }) => {
   const [scoring, setScoring] = useState(false);
+  // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
+  const [matchStep, setMatchStep] = useState(0);
+
+  // Auto-advance to step 4 when tailoring finishes
+  useEffect(() => {
+    if (quickTailor.done && matchStep === 3) setMatchStep(4);
+  }, [quickTailor.done, matchStep]);
 
   const strength = resumeScore ?? launchStrength;
   const meta = getStrengthMeta(strength);
@@ -54,6 +61,7 @@ const LaunchView = ({
       const data = await res.json();
       setAtsScore(data.score);
       setAtsFeedback(data.feedback);
+      setMatchStep(1);
     } catch (err) {
       alert("Scoring failed: " + err.message);
     } finally {
@@ -70,6 +78,7 @@ const LaunchView = ({
     if (atsScore !== null) {
       setAtsScore(null);
       setAtsFeedback(null);
+      setMatchStep(0);
     }
   };
 
@@ -146,15 +155,15 @@ const LaunchView = ({
             </button>
           </div>
 
-          {/* Quick Tailor */}
+          {/* Check Your Job Match */}
           <div className="p-6 rounded-2xl bg-white border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)]">
             <div className="flex justify-between items-start mb-1.5">
               <div>
                 <h3 className="font-serif text-[17px] font-bold mb-[3px]">
-                  Quick Tailor
+                  Check Your Job Match
                 </h3>
                 <p className="text-xs text-stone-500">
-                  Paste a job description → tailored resume in minutes
+                  Paste a job description → see how well your resume matches
                 </p>
               </div>
               <ScoreTypeBadge type="ats" />
@@ -177,7 +186,7 @@ const LaunchView = ({
             />
 
             {/* Score My Match button */}
-            {jdText.trim() && atsScore === null && !quickTailor.active && !quickTailor.done && (
+            {jdText.trim() && matchStep === 0 && (
               <button
                 onClick={handleScoreMatch}
                 disabled={scoring || !resumeText}
@@ -194,8 +203,35 @@ const LaunchView = ({
               </button>
             )}
 
-            {/* Pre-tailor state: show when we have a real ATS score */}
-            {atsScore !== null && !quickTailor.active && !quickTailor.done && (
+            {/* Step indicator */}
+            {matchStep >= 1 && (
+              <div className="flex items-center justify-center gap-1.5 mb-4">
+                {[1, 2, 3].map((s) => (
+                  <div key={s} className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => {
+                        if (s <= matchStep && s < 3) setMatchStep(s);
+                      }}
+                      className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center border-none cursor-pointer font-sans transition-all ${
+                        s === matchStep || (s === 3 && matchStep >= 3)
+                          ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_1px_4px_rgba(255,140,66,0.3)]"
+                          : s < matchStep || matchStep >= 3
+                            ? "bg-green-100 text-green-600"
+                            : "bg-stone-100 text-stone-400"
+                      }`}
+                    >
+                      {(s < matchStep || (matchStep >= 3 && s < 3)) ? "✓" : s}
+                    </button>
+                    {s < 3 && (
+                      <div className={`w-8 h-0.5 rounded ${s < matchStep || matchStep >= 3 ? "bg-green-200" : "bg-stone-200"}`} />
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Step 1: Score Result */}
+            {matchStep === 1 && atsScore !== null && (
               <div>
                 <div className="p-3 px-3.5 rounded-[10px] bg-warm-bg border border-warm-border mb-3.5">
                   <div className="flex items-center gap-1.5 mb-2">
@@ -247,7 +283,21 @@ const LaunchView = ({
                   </p>
                 </div>
 
-                {/* ATS Feedback items */}
+                <button
+                  onClick={() => setMatchStep(2)}
+                  className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+                >
+                  See What We Found →
+                </button>
+              </div>
+            )}
+
+            {/* Step 2: Detailed Findings */}
+            {matchStep === 2 && (
+              <div>
+                <p className="text-xs font-bold text-[#1a1a1a] mb-2">
+                  ATS Analysis
+                </p>
                 {atsFeedback && atsFeedback.length > 0 && (
                   <div className="flex flex-col gap-1.5 mb-3.5">
                     {atsFeedback.map((item, i) => (
@@ -266,7 +316,10 @@ const LaunchView = ({
                 )}
 
                 <button
-                  onClick={quickTailor.start}
+                  onClick={() => {
+                    setMatchStep(3);
+                    quickTailor.start();
+                  }}
                   className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
                 >
                   ✧ Tailor Now
@@ -274,8 +327,8 @@ const LaunchView = ({
               </div>
             )}
 
-            {/* Tailoring in progress */}
-            {quickTailor.active && (
+            {/* Step 3: Tailoring in progress */}
+            {matchStep === 3 && !quickTailor.done && (
               <div className="text-center py-4">
                 <div className="w-9 h-9 rounded-[10px] mx-auto mb-3 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-base text-white animate-[gp_2s_ease_infinite]">
                   ✧
@@ -295,8 +348,8 @@ const LaunchView = ({
               </div>
             )}
 
-            {/* Tailor done */}
-            {quickTailor.done && (
+            {/* Step 4: Tailor done — download */}
+            {matchStep === 4 && (
               <div>
                 <ATSResultCard
                   before={atsScore ?? 68}
