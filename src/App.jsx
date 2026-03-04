@@ -263,7 +263,7 @@ const App = () => {
           expandedFeedback={expandedFeedback}
           setExpandedFeedback={setExpandedFeedback}
           onOpenSidebar={handleOpenSidebar}
-          resumeScore={resumeScore}
+          resumeScore={improvedScore ?? resumeScore}
           resumeText={resumeText}
           jdText={jdText}
           setJdText={setJdText}
