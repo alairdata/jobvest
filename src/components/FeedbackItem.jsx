@@ -32,7 +32,7 @@ const FeedbackItem = ({ item, isOpen, onToggle }) => {
           className="py-3 pr-3.5 pl-[46px] bg-white"
           style={{ borderTop: `1px solid ${st.border}` }}
         >
-          <p className="text-[11px] text-stone-600 leading-[1.7]">{item.details}</p>
+          <p className="text-[11px] text-stone-600 leading-[1.7] whitespace-pre-line">{item.details}</p>
         </div>
       )}
     </div>

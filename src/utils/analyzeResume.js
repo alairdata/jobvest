@@ -1,3 +1,85 @@
+// ── Personal pronouns (should never appear in resumes) ──
+const PERSONAL_PRONOUNS = ["i ", "i'm", "i've", "i'd", "my ", "me ", "myself", "we ", "our ", "ours", "ourselves"];
+
+// ── Responsibility-oriented phrases (passive, should be rewritten) ──
+const RESPONSIBILITY_WORDS = [
+  "responsible for", "responsibilities include", "responsibilities included",
+  "duties include", "duties included", "tasked with", "in charge of",
+  "assigned to", "accountable for",
+];
+
+// ── Filler words and adverbs that waste space ──
+const FILLER_WORDS = [
+  "effectively", "successfully", "basically", "essentially", "significantly",
+  "greatly", "tremendously", "extremely", "highly", "very",
+  "really", "quite", "fairly", "rather", "somewhat",
+  "in order to", "as needed", "on a daily basis", "on a regular basis",
+  "as well as", "due to the fact that", "in addition to",
+  "for the purpose of", "with the aim of", "in an effort to",
+  "a variety of", "a number of", "in terms of",
+  "various", "numerous", "several different", "multiple different",
+  "helped to", "was able to", "served as", "acted as",
+  "quickly", "slowly", "carefully", "diligently", "consistently",
+  "proactively", "strategically", "thoughtfully",
+];
+
+// ── Vague buzzwords & clichés that add little value ──
+const BUZZWORDS = [
+  "attention to detail", "problem solving", "presentation skills",
+  "critical thinking", "organizational skills", "team player",
+  "hard worker", "go-getter", "self-starter", "detail oriented",
+  "detail-oriented", "results driven", "results-driven", "think outside the box",
+  "synergy", "go above and beyond", "people person", "strong work ethic",
+  "passionate", "motivated", "dynamic", "strategic thinker",
+  "excellent communication skills", "communication skills",
+  "time management", "multitasker", "fast learner", "quick learner",
+  "proactive", "innovative thinker", "creative thinker",
+  "goal oriented", "goal-oriented", "self motivated", "self-motivated",
+  "works well under pressure", "good interpersonal skills",
+  "interpersonal skills", "leadership skills", "analytical skills",
+  "proven track record", "responsible for", "out of the box",
+  "best of breed", "thought leader", "value added", "value-added",
+  "highly motivated", "highly organized", "strong communicator",
+  "dedicated professional", "seasoned professional",
+];
+
+// ── Weak action verbs with strong replacements ──
+const WEAK_VERBS = {
+  "worked on": ["implemented", "developed", "executed", "delivered"],
+  "worked": ["executed", "delivered", "accomplished", "completed"],
+  "helped": ["facilitated", "enabled", "supported", "contributed to"],
+  "assisted": ["supported", "facilitated", "partnered with", "collaborated on"],
+  "was responsible for": ["managed", "led", "oversaw", "directed"],
+  "responsible for": ["managed", "led", "oversaw", "directed"],
+  "handled": ["managed", "coordinated", "processed", "administered"],
+  "did": ["executed", "performed", "completed", "accomplished"],
+  "made": ["created", "developed", "produced", "designed"],
+  "got": ["secured", "obtained", "achieved", "acquired"],
+  "used": ["leveraged", "utilized", "applied", "employed"],
+  "utilized": ["leveraged", "applied", "employed", "harnessed"],
+  "participated in": ["contributed to", "collaborated on", "engaged in", "co-led"],
+  "involved in": ["contributed to", "played a key role in", "drove", "supported"],
+  "contributed to": ["drove", "advanced", "strengthened", "elevated"],
+  "supported": ["enabled", "empowered", "bolstered", "reinforced"],
+  "tried": ["pursued", "endeavored", "sought to", "aimed to"],
+  "learned": ["mastered", "acquired proficiency in", "developed expertise in"],
+  "communicated": ["presented", "articulated", "conveyed", "briefed"],
+  "organized": ["coordinated", "orchestrated", "structured", "systematized"],
+  "ran": ["directed", "managed", "oversaw", "led"],
+  "dealt with": ["resolved", "addressed", "managed", "navigated"],
+  "ensured": ["guaranteed", "maintained", "upheld", "safeguarded"],
+  "oversaw": ["directed", "managed", "supervised", "administered"],
+  "tasked with": ["charged with", "led", "managed", "spearheaded"],
+  "skilled in": ["proficient in", "expert in"],
+  "experienced in": ["specialized in", "seasoned in"],
+  "in charge of": ["led", "directed", "managed", "headed"],
+  "looked after": ["managed", "maintained", "administered", "oversaw"],
+  "put together": ["assembled", "compiled", "developed", "designed"],
+  "came up with": ["devised", "conceived", "designed", "developed"],
+  "set up": ["established", "implemented", "configured", "initiated"],
+  "went through": ["completed", "executed", "processed", "reviewed"],
+};
+
 // ── Power verbs for bullet quality scoring ──
 const POWER_VERBS = [
   "achieved", "increased", "reduced", "spearheaded", "developed", "managed",
@@ -121,6 +203,204 @@ const ROLE_SKILL_MAP = {
   "education": ["curriculum", "lesson planning", "assessment", "classroom management", "lms"],
   "instructor": ["curriculum", "lesson planning", "assessment", "classroom management", "lms"],
   "analytics": ["python", "sql", "r", "tableau", "power bi", "excel", "statistics", "machine learning", "pandas", "numpy", "tensorflow", "pytorch"],
+};
+
+// ── Extended role domain terms for bullet relevance scoring ──
+// Includes both hard skills AND domain-relevant action/context terms
+const ROLE_RELEVANCE_TERMS = {
+  "data scientist": ["data", "model", "algorithm", "predict", "analysis", "dataset", "feature", "train", "accuracy", "regression", "classification", "cluster", "visualization", "insight", "experiment", "hypothesis", "pipeline", "etl", "warehouse", "query", "report", "dashboard", "metric", "kpi", "trend", "forecast", "python", "sql", "r", "tableau", "power bi", "excel", "statistics", "machine learning", "pandas", "numpy", "tensorflow", "pytorch", "deep learning", "nlp", "neural network"],
+  "data analyst": ["data", "analysis", "analyze", "dataset", "visualization", "dashboard", "report", "insight", "trend", "metric", "kpi", "query", "etl", "pipeline", "warehouse", "cleaning", "modeling", "forecast", "chart", "graph", "spreadsheet", "database", "automation", "python", "sql", "r", "tableau", "power bi", "excel", "statistics", "pandas", "bi", "business intelligence", "a/b test", "segment", "stakeholder", "presentation"],
+  "product manager": ["product", "roadmap", "feature", "user", "customer", "stakeholder", "sprint", "backlog", "prioritiz", "launch", "metric", "kpi", "strategy", "market", "research", "competitor", "requirement", "spec", "mvp", "adoption", "retention", "engagement", "analytics", "a/b test", "agile", "jira", "sql", "conversion", "revenue", "growth"],
+  "product owner": ["product", "roadmap", "feature", "user", "customer", "stakeholder", "sprint", "backlog", "prioritiz", "launch", "metric", "kpi", "strategy", "market", "research", "requirement", "spec", "mvp", "agile", "jira", "acceptance criteria", "user story"],
+  "project manager": ["project", "timeline", "milestone", "deliverable", "stakeholder", "budget", "scope", "risk", "resource", "schedule", "agile", "scrum", "sprint", "kanban", "gantt", "status report", "cross-functional", "coordinate", "planning", "jira", "confluence", "ms project", "vendor", "procurement"],
+  "software": ["code", "develop", "build", "deploy", "api", "database", "server", "frontend", "backend", "full stack", "test", "debug", "architecture", "microservice", "scalab", "performance", "refactor", "review", "version control", "git", "ci/cd", "agile", "sprint", "javascript", "typescript", "python", "react", "node", "aws", "docker", "rest", "graphql", "endpoint"],
+  "developer": ["code", "develop", "build", "deploy", "api", "database", "server", "frontend", "backend", "full stack", "test", "debug", "architecture", "microservice", "scalab", "performance", "refactor", "review", "version control", "git", "ci/cd", "agile", "sprint", "javascript", "typescript", "python", "react", "node", "aws", "docker", "rest", "graphql", "endpoint"],
+  "engineer": ["code", "develop", "build", "deploy", "api", "database", "server", "frontend", "backend", "full stack", "test", "debug", "architecture", "microservice", "scalab", "performance", "refactor", "review", "version control", "git", "ci/cd", "agile", "sprint", "system", "infrastructure", "design", "implement", "automat"],
+  "designer": ["design", "prototype", "wireframe", "mockup", "user experience", "user interface", "usability", "accessibility", "responsive", "layout", "typography", "color", "brand", "interaction", "figma", "sketch", "adobe", "css", "html", "component", "design system", "user research", "persona", "journey map", "information architecture"],
+  "ux": ["user experience", "usability", "research", "interview", "persona", "journey map", "wireframe", "prototype", "test", "accessibility", "heuristic", "information architecture", "interaction", "figma", "sketch", "user flow", "empathy", "design thinking"],
+  "ui": ["user interface", "visual design", "component", "design system", "responsive", "layout", "typography", "color", "icon", "animation", "figma", "sketch", "adobe", "css", "pixel", "brand"],
+  "marketing": ["marketing", "campaign", "brand", "content", "social media", "seo", "sem", "ppc", "email", "conversion", "engagement", "audience", "segment", "analytics", "roi", "funnel", "lead", "acquisition", "retention", "growth", "strategy", "channel", "copywriting", "creative", "google analytics", "hubspot", "ads", "crm"],
+  "devops": ["deploy", "pipeline", "ci/cd", "infrastructure", "container", "orchestrat", "monitor", "alert", "automat", "provision", "cloud", "server", "uptime", "incident", "docker", "kubernetes", "terraform", "aws", "gcp", "azure", "linux", "ansible", "jenkins", "scalab", "reliability"],
+  "sre": ["reliability", "incident", "monitor", "alert", "sla", "slo", "uptime", "availability", "latency", "performance", "postmortem", "runbook", "automat", "toil", "docker", "kubernetes", "terraform", "aws", "gcp", "azure", "linux", "on-call"],
+  "accountant": ["accounting", "financial", "audit", "tax", "reconcil", "ledger", "journal", "invoice", "payroll", "compliance", "gaap", "ifrs", "budget", "forecast", "variance", "revenue", "expense", "balance sheet", "income statement", "excel", "quickbooks", "sap", "erp"],
+  "finance": ["financial", "investment", "portfolio", "risk", "valuation", "model", "forecast", "budget", "revenue", "profit", "capital", "equity", "debt", "analysis", "report", "compliance", "regulatory", "excel", "bloomberg", "sap", "erp"],
+  "nurse": ["patient", "care", "clinical", "treatment", "medication", "assessment", "vital", "chart", "protocol", "triage", "wound", "iv", "ehr", "hipaa", "safety", "infection control", "cpr", "emergency"],
+  "healthcare": ["patient", "care", "clinical", "treatment", "health", "medical", "diagnosis", "therapy", "ehr", "hipaa", "compliance", "safety", "protocol", "outcome", "quality"],
+  "teacher": ["student", "teach", "curriculum", "lesson", "classroom", "assessment", "grade", "learning", "instruction", "differentiat", "engage", "parent", "education", "academic", "lms", "training"],
+  "manager": ["team", "lead", "manage", "direct report", "hire", "performance review", "budget", "strategy", "cross-functional", "stakeholder", "project", "deliverable", "prioritiz", "mentor", "coach", "agile", "process improvement"],
+  "analytics": ["data", "analysis", "analyze", "dataset", "visualization", "dashboard", "report", "insight", "trend", "metric", "kpi", "query", "etl", "pipeline", "warehouse", "cleaning", "modeling", "forecast", "python", "sql", "r", "tableau", "power bi", "excel", "statistics", "pandas", "bi", "business intelligence"],
+};
+
+// ── Industry standards per role: must-haves, nice-to-haves, expected sections, tips ──
+const INDUSTRY_STANDARDS = {
+  "data scientist": {
+    label: "Data Science",
+    mustHave: ["python", "sql", "machine learning"],
+    niceToHave: ["tensorflow", "pytorch", "deep learning", "nlp", "spark", "aws", "gcp", "docker", "statistics", "r"],
+    expectedSections: ["projects", "publications"],
+    certs: ["aws certified", "google certified", "tensorflow developer"],
+    tips: ["Include a Projects section showcasing ML/AI work", "Mention model performance metrics (accuracy, F1, AUC)", "List relevant Kaggle competitions or research papers"],
+  },
+  "data analyst": {
+    label: "Data Analytics",
+    mustHave: ["sql", "excel"],
+    niceToHave: ["python", "r", "tableau", "power bi", "google analytics", "pandas", "statistics", "etl", "warehouse", "looker"],
+    expectedSections: [],
+    certs: ["google data analytics", "microsoft certified", "tableau certified"],
+    tips: ["Emphasize dashboard creation and data visualization", "Show business impact with metrics (revenue, efficiency, cost savings)", "Mention stakeholder communication and presenting insights"],
+  },
+  "product manager": {
+    label: "Product Management",
+    mustHave: ["roadmap", "stakeholder"],
+    niceToHave: ["agile", "jira", "a/b testing", "sql", "analytics", "user research", "okr", "kpi", "sprint"],
+    expectedSections: [],
+    certs: ["cspo", "pragmatic", "product school"],
+    tips: ["Quantify product impact (user growth, revenue, adoption)", "Show cross-functional leadership experience", "Mention data-informed decision making"],
+  },
+  "product owner": {
+    label: "Product Management",
+    mustHave: ["backlog", "user story"],
+    niceToHave: ["agile", "jira", "sprint", "acceptance criteria", "stakeholder", "roadmap", "scrum"],
+    expectedSections: [],
+    certs: ["cspo", "pspo", "safe"],
+    tips: ["Show experience writing user stories and acceptance criteria", "Mention backlog grooming and sprint planning"],
+  },
+  "project manager": {
+    label: "Project Management",
+    mustHave: ["project", "stakeholder"],
+    niceToHave: ["agile", "scrum", "jira", "budget", "risk", "timeline", "milestone", "gantt", "confluence", "ms project"],
+    expectedSections: [],
+    certs: ["pmp", "prince2", "csm", "safe", "capm"],
+    tips: ["Highlight on-time and under-budget delivery", "Show risk management and stakeholder communication", "PMP or PRINCE2 certification strongly recommended"],
+  },
+  "software": {
+    label: "Software Engineering",
+    mustHave: ["git"],
+    niceToHave: ["javascript", "typescript", "python", "react", "node", "aws", "docker", "ci/cd", "api", "sql", "kubernetes", "microservice", "test"],
+    expectedSections: ["projects"],
+    certs: ["aws certified", "azure certified", "google cloud"],
+    tips: ["Include a Projects or Open Source section with GitHub links", "Mention system design and architecture decisions", "Show CI/CD and testing practices"],
+  },
+  "developer": {
+    label: "Software Engineering",
+    mustHave: ["git"],
+    niceToHave: ["javascript", "typescript", "python", "react", "node", "aws", "docker", "ci/cd", "api", "sql", "kubernetes", "test"],
+    expectedSections: ["projects"],
+    certs: ["aws certified", "azure certified"],
+    tips: ["Include a Projects section with GitHub links", "Mention code review and collaboration practices", "Show deployment and testing experience"],
+  },
+  "engineer": {
+    label: "Engineering",
+    mustHave: ["git"],
+    niceToHave: ["javascript", "typescript", "python", "react", "node", "aws", "docker", "ci/cd", "api", "sql", "system", "architecture"],
+    expectedSections: ["projects"],
+    certs: ["aws certified", "azure certified"],
+    tips: ["Include a Projects section with GitHub links", "Show system design and scalability experience"],
+  },
+  "designer": {
+    label: "Design",
+    mustHave: ["figma"],
+    niceToHave: ["sketch", "adobe", "prototyping", "wireframing", "user research", "accessibility", "design system", "css", "html"],
+    expectedSections: ["portfolio"],
+    certs: [],
+    tips: ["Include a portfolio link prominently at the top", "Show your design process, not just final outputs", "Mention usability testing and iteration"],
+  },
+  "ux": {
+    label: "UX Design",
+    mustHave: ["user research"],
+    niceToHave: ["figma", "prototype", "wireframe", "usability", "accessibility", "persona", "journey map", "design thinking", "information architecture"],
+    expectedSections: ["portfolio"],
+    certs: ["google ux", "nielsen norman"],
+    tips: ["Include a portfolio link showing your UX process", "Emphasize research methods and user insights", "Show before/after metrics from your design changes"],
+  },
+  "ui": {
+    label: "UI Design",
+    mustHave: ["figma"],
+    niceToHave: ["sketch", "adobe", "design system", "component", "responsive", "typography", "css"],
+    expectedSections: ["portfolio"],
+    certs: [],
+    tips: ["Include a portfolio link showcasing visual design work", "Mention design systems and component libraries you've built"],
+  },
+  "marketing": {
+    label: "Marketing",
+    mustHave: ["campaign"],
+    niceToHave: ["seo", "google analytics", "social media", "hubspot", "email", "content", "ppc", "crm", "conversion", "roi"],
+    expectedSections: [],
+    certs: ["google ads", "hubspot", "google analytics", "facebook blueprint"],
+    tips: ["Quantify campaign results (ROI, conversions, reach, engagement)", "Show experience across multiple channels", "Mention A/B testing and data-driven optimization"],
+  },
+  "devops": {
+    label: "DevOps",
+    mustHave: ["ci/cd", "docker"],
+    niceToHave: ["kubernetes", "terraform", "aws", "gcp", "azure", "linux", "ansible", "jenkins", "monitoring", "infrastructure as code"],
+    expectedSections: [],
+    certs: ["aws certified", "cka", "ckad", "azure devops", "terraform associate"],
+    tips: ["Highlight uptime improvements and incident reduction", "Show infrastructure-as-code practices", "Mention monitoring, alerting, and observability tools"],
+  },
+  "sre": {
+    label: "Site Reliability Engineering",
+    mustHave: ["monitoring", "incident"],
+    niceToHave: ["sla", "slo", "kubernetes", "terraform", "aws", "docker", "linux", "on-call", "postmortem", "automation"],
+    expectedSections: [],
+    certs: ["aws certified", "cka", "google cloud"],
+    tips: ["Quantify uptime/availability improvements", "Show incident response and postmortem practices", "Mention SLA/SLO targets you maintained"],
+  },
+  "accountant": {
+    label: "Accounting",
+    mustHave: ["excel"],
+    niceToHave: ["gaap", "ifrs", "quickbooks", "sap", "audit", "tax", "reconciliation", "financial reporting", "erp", "compliance"],
+    expectedSections: [],
+    certs: ["cpa", "cma", "acca", "cia"],
+    tips: ["CPA certification is strongly expected in this field", "Emphasize accuracy, compliance, and audit experience", "Quantify the scope of accounts managed (revenue, transactions)"],
+  },
+  "finance": {
+    label: "Finance",
+    mustHave: ["excel", "financial"],
+    niceToHave: ["modeling", "valuation", "bloomberg", "sap", "forecasting", "budgeting", "risk", "compliance", "investment"],
+    expectedSections: [],
+    certs: ["cfa", "cpa", "frm", "caia"],
+    tips: ["CFA or CPA certification is highly valued", "Show deal sizes, portfolio values, or budget scope", "Mention financial modeling and valuation methods"],
+  },
+  "nurse": {
+    label: "Nursing / Healthcare",
+    mustHave: ["patient"],
+    niceToHave: ["ehr", "hipaa", "clinical", "medication", "triage", "cpr", "vital", "assessment", "infection control"],
+    expectedSections: ["licenses", "certifications"],
+    certs: ["rn", "bsn", "bls", "acls", "cpr"],
+    tips: ["List nursing license and state prominently", "Include all clinical certifications (BLS, ACLS)", "Mention patient-to-nurse ratios and unit sizes"],
+  },
+  "healthcare": {
+    label: "Healthcare",
+    mustHave: ["patient"],
+    niceToHave: ["ehr", "hipaa", "clinical", "compliance", "protocol", "outcome", "quality"],
+    expectedSections: ["licenses", "certifications"],
+    certs: ["bls", "acls", "hipaa"],
+    tips: ["Include all licenses and certifications", "Emphasize patient outcomes and quality metrics"],
+  },
+  "teacher": {
+    label: "Education",
+    mustHave: ["student", "curriculum"],
+    niceToHave: ["lesson", "assessment", "classroom", "differentiat", "lms", "instruction", "engage", "academic"],
+    expectedSections: ["certifications"],
+    certs: ["teaching license", "tesol", "tefl"],
+    tips: ["Include teaching certification and subject areas", "Show student outcome improvements with metrics", "Mention class sizes and grade levels"],
+  },
+  "manager": {
+    label: "Management",
+    mustHave: ["team", "lead"],
+    niceToHave: ["budget", "strategy", "stakeholder", "hire", "performance", "cross-functional", "mentor", "agile", "process improvement"],
+    expectedSections: [],
+    certs: ["pmp", "csm", "six sigma"],
+    tips: ["Quantify team size and scope of responsibility", "Show hiring, mentoring, and performance management experience", "Highlight budget ownership and P&L responsibility"],
+  },
+  "analytics": {
+    label: "Analytics",
+    mustHave: ["sql", "data"],
+    niceToHave: ["python", "r", "tableau", "power bi", "excel", "statistics", "etl", "dashboard", "visualization", "bi"],
+    expectedSections: [],
+    certs: ["google data analytics", "microsoft certified", "tableau certified"],
+    tips: ["Emphasize dashboard creation and data storytelling", "Show business impact with concrete metrics", "Mention ETL and data pipeline experience"],
+  },
 };
 
 // Keys sorted: multi-word first, then single-word, for correct matching priority
@@ -379,32 +659,114 @@ export function analyzeResume(text, pageCount = 1) {
   const summaryAliases = [...summaryLabels, ...objectiveLabels];
   const hasSummarySection = summaryAliases.some((a) => lower.includes(a));
   const isObjectiveHeading = !summaryLabels.some((a) => lower.includes(a)) && objectiveLabels.some((a) => lower.includes(a));
+
+  // Extract summary text up to the next section header
   let summaryText = "";
+  let summaryHeadingUsed = "";
   if (hasSummarySection) {
     for (const alias of summaryAliases) {
       const idx = lower.indexOf(alias);
       if (idx !== -1) {
-        summaryText = text.slice(idx, idx + 500);
+        summaryHeadingUsed = alias;
+        // Extract text after the heading until the next section or 500 chars
+        const afterHeading = idx + alias.length;
+        const remaining = text.slice(afterHeading, afterHeading + 500);
+        // Cut at next section header if found
+        const nextHeaderMatch = remaining.match(/\n\s*(experience|education|skills|technical skills|work|employment|projects|certifications?|awards?|publications?|volunteer)\s*(\n|:|$)/i);
+        summaryText = nextHeaderMatch ? remaining.slice(0, nextHeaderMatch.index) : remaining;
+        summaryText = summaryText.trim();
         break;
       }
     }
   }
-  const summaryWordCount = summaryText.split(/\s+/).filter(Boolean).length;
+
+  const summaryWords = summaryText.split(/\s+/).filter(Boolean);
+  const summaryWordCount = summaryWords.length;
   const roleTerms = ["engineer", "developer", "analyst", "manager", "designer", "scientist", "consultant", "specialist", "lead", "architect", "coordinator"];
   const hasRoleTerms = roleTerms.some((t) => lower.includes(t));
+
+  // Count metrics/numbers in summary
+  const summaryMetrics = (summaryText.match(/\d+%|\$[\d,.]+[KkMmBb]?|\b\d{1,3}(,\d{3})+\b|\b\d+[KkMmBb]\b|\b\d+\+?\s*(years?|clients?|projects?|teams?|employees?|users?|departments?|companies|stakeholders)/gi) || []);
+  const summaryMetricCount = summaryMetrics.length;
+
+  // Check for buzzwords in summary specifically
+  const summaryLower = summaryText.toLowerCase();
+  const summaryBuzzwords = BUZZWORDS.filter((bw) => summaryLower.includes(bw));
+
+  // Detect accepted heading names for ATS
+  const atsAcceptedHeadings = ["professional summary", "summary", "profile", "career summary", "executive summary"];
+  const headingIsAtsOk = atsAcceptedHeadings.some((h) => summaryHeadingUsed.toLowerCase() === h);
+
+  // Estimate experience years early for summary advice
+  const estimatedYears = estimateExperienceYears(text);
+  const needsSummary = estimatedYears >= 10 || pageCount >= 2;
 
   if (isObjectiveHeading) {
     total += 5;
     feedback.push({ section: "Professional Summary", status: "warning", msg: "\"Objective\" statements are outdated — switch to a Professional Summary", details: "Objective sections (e.g. 'I want a job where...') are considered outdated by most recruiters. Replace with a 'Professional Summary' that highlights your value proposition in 3-5 sentences. Capped at 5/12 pts." });
-  } else if (hasSummarySection && summaryWordCount > 30 && hasRoleTerms) {
-    total += 12;
-    feedback.push({ section: "Professional Summary", status: "good", msg: "Strong summary with role-specific language", details: "Your summary is a good length and contains relevant role keywords. Nice work." });
   } else if (hasSummarySection) {
-    total += 6;
-    const issues = [];
-    if (summaryWordCount <= 30) issues.push("it's too short (aim for 3-5 sentences)");
-    if (!hasRoleTerms) issues.push("it lacks role-specific terms");
-    feedback.push({ section: "Professional Summary", status: "warning", msg: `Summary present but ${issues.join(" and ")}`, details: "Add specific terms that mirror what hiring managers look for, and expand to 3-5 impactful sentences." });
+    // Build sub-checks
+    const subChecks = [];
+    let summaryScore = 12;
+
+    // Length check
+    if (summaryWordCount > 100) {
+      summaryScore -= 2;
+      subChecks.push({ label: "Length", status: "warning", note: `${summaryWordCount} words (recommended: 100 words or less). Your summary is too long — keep it concise so recruiters can scan it quickly.` });
+    } else if (summaryWordCount < 15) {
+      summaryScore -= 3;
+      subChecks.push({ label: "Length", status: "warning", note: `${summaryWordCount} words (recommended: 30-100 words). Your summary is too short to be effective.` });
+    } else {
+      subChecks.push({ label: "Length", status: "good", note: `${summaryWordCount} words (recommended: 100 words or less)` });
+    }
+
+    // Metrics check
+    if (summaryMetricCount >= 2) {
+      subChecks.push({ label: "Metrics", status: "good", note: `${summaryMetricCount} metrics found (recommended: 2 or more)` });
+    } else {
+      summaryScore -= 2;
+      subChecks.push({ label: "Metrics", status: "warning", note: `${summaryMetricCount} metric${summaryMetricCount === 1 ? "" : "s"} found (recommended: 2 or more). Numbers and metrics make your achievements concrete and memorable. Include at least two quantifiable results (e.g., project scales, revenue impacts, team sizes).` });
+    }
+
+    // Buzzwords in summary
+    if (summaryBuzzwords.length === 0) {
+      subChecks.push({ label: "Buzzwords", status: "good", note: "No buzzwords or clichés found in summary (target: zero)" });
+    } else {
+      summaryScore -= 2;
+      subChecks.push({ label: "Buzzwords", status: "warning", note: `${summaryBuzzwords.length} buzzword${summaryBuzzwords.length > 1 ? "s" : ""} found (target: zero). Remove: ${summaryBuzzwords.map((b) => `"${b}"`).join(", ")}. These are overused and often seen as red flags by employers.` });
+    }
+
+    // Role-specific language
+    if (!hasRoleTerms) {
+      summaryScore -= 1;
+      subChecks.push({ label: "Role keywords", status: "warning", note: "No role-specific terms found. Include your target role title to help ATS and recruiters." });
+    }
+
+    // Section heading ATS check
+    if (headingIsAtsOk) {
+      subChecks.push({ label: "Section title", status: "good", note: `"${summaryHeadingUsed}" can be detected by resume screeners.` });
+    } else if (summaryHeadingUsed) {
+      subChecks.push({ label: "Section title", status: "warning", note: `"${summaryHeadingUsed}" may not be recognized by all ATS. Consider using "Professional Summary" or "Summary" instead.` });
+    }
+
+    // Necessity check — advice for those who may not need one
+    if (!needsSummary && summaryScore < 10) {
+      subChecks.push({ label: "Do you need one?", status: "info", note: `A resume summary is optional. With ~${estimatedYears > 0 ? estimatedYears : "few"} years of experience and ${pageCount} page${pageCount > 1 ? "s" : ""}, your experience section may speak for itself. A generic summary is worse than no summary — if yours just repeats your resume, consider removing it.` });
+    }
+
+    summaryScore = Math.max(summaryScore, 0);
+    total += summaryScore;
+
+    const goodChecks = subChecks.filter((c) => c.status === "good").length;
+    const totalChecks = subChecks.filter((c) => c.status !== "info").length;
+    const issueLabels = subChecks.filter((c) => c.status === "warning").map((c) => c.label.toLowerCase());
+    const status = summaryScore >= 10 ? "good" : summaryScore >= 6 ? "warning" : "error";
+    const msg = issueLabels.length === 0
+      ? `Strong summary — ${goodChecks}/${totalChecks} checks passed`
+      : `Summary needs work — lacks ${issueLabels.join(" and ")}`;
+    const details = subChecks.map((c) => `${c.status === "good" ? "✓" : c.status === "warning" ? "✗" : "ℹ"} ${c.label}: ${c.note}`).join("\n");
+
+    feedback.push({ section: "Professional Summary", status, msg, details });
   } else {
     feedback.push({ section: "Professional Summary", status: "error", msg: "No summary or objective section found", details: "Add a 'Professional Summary' section at the top with 3-5 sentences highlighting your value proposition and key strengths." });
   }
@@ -546,21 +908,6 @@ export function analyzeResume(text, pageCount = 1) {
     if (bulletCount > 0 && wordyBullets.length / bulletCount > 0.25) {
       workScore = Math.max(workScore - 1, 0);
       workDetails.push(`${wordyBullets.length} bullet${wordyBullets.length === 1 ? "" : "s"} exceed${wordyBullets.length === 1 ? "s" : ""} 200 characters — keep each to 1-2 lines`);
-    }
-
-    // Reverse-chronological order check: most recent job should come first
-    if (jobEntries.length >= 2) {
-      let outOfOrder = false;
-      for (let i = 1; i < jobEntries.length; i++) {
-        if (jobEntries[i].endYear > jobEntries[i - 1].endYear) {
-          outOfOrder = true;
-          break;
-        }
-      }
-      if (outOfOrder) {
-        workScore = Math.max(workScore - 1, 0);
-        workDetails.push("Jobs are not in reverse-chronological order — list your most recent role first");
-      }
     }
 
     workScore = Math.min(workScore, 14);
@@ -817,5 +1164,632 @@ export function analyzeResume(text, pageCount = 1) {
     details: `${pageLengthNote} (${pageLengthScore}/8 pts)`,
   });
 
-  return { score: Math.min(total, 100), feedback };
+  // ── 10. Buzzwords & Clichés (penalty up to -8 pts) ──
+  const buzzwordsFound = BUZZWORDS.filter((bw) => lower.includes(bw));
+  const buzzwordCount = buzzwordsFound.length;
+
+  if (buzzwordCount === 0) {
+    feedback.push({
+      section: "Buzzwords & Clichés",
+      status: "good",
+      msg: "No vague buzzwords detected",
+      details: "Your resume avoids overused clichés. This is great — employers value specific, evidence-backed language over subjective claims.",
+    });
+  } else {
+    // Deduct 2 pts per buzzword, max -8
+    const buzzPenalty = Math.min(buzzwordCount * 2, 8);
+    total -= buzzPenalty;
+    const displayBuzzwords = buzzwordsFound.slice(0, 5).map((b) => `"${b}"`).join(", ");
+    const extra = buzzwordCount > 5 ? ` and ${buzzwordCount - 5} more` : "";
+
+    if (buzzwordCount <= 2) {
+      feedback.push({
+        section: "Buzzwords & Clichés",
+        status: "warning",
+        msg: `${buzzwordCount} vague buzzword${buzzwordCount > 1 ? "s" : ""} found (-${buzzPenalty} pts)`,
+        details: `Found: ${displayBuzzwords}${extra}. These terms are considered clichés because they're overused and not backed by evidence. Try to remove them or demonstrate these qualities through your work experience instead.`,
+      });
+    } else {
+      feedback.push({
+        section: "Buzzwords & Clichés",
+        status: "error",
+        msg: `${buzzwordCount} vague buzzwords found (-${buzzPenalty} pts)`,
+        details: `Found: ${displayBuzzwords}${extra}. Too many buzzwords can make your resume look like you've misunderstood its purpose. Remove these phrases entirely or replace them with specific achievements that demonstrate these qualities. Keep your Skills section for hard skills (tools, software, techniques) — not subjective traits.`,
+      });
+    }
+  }
+
+  // ── 11. Chronological Order (informational — no extra points, penalty if wrong) ──
+  if (hasJobEntries && jobEntries.length >= 2) {
+    let outOfOrder = false;
+    for (let i = 1; i < jobEntries.length; i++) {
+      if (jobEntries[i].endYear > jobEntries[i - 1].endYear) {
+        outOfOrder = true;
+        break;
+      }
+    }
+    if (!outOfOrder) {
+      feedback.push({
+        section: "Chronological Order",
+        status: "good",
+        msg: "Experiences are in reverse chronological order",
+        details: "Your most recent roles appear first, which is exactly what recruiters expect. This makes it easy for them to see your latest and most relevant experience at a glance.",
+      });
+    } else {
+      total -= 4;
+      feedback.push({
+        section: "Chronological Order",
+        status: "error",
+        msg: "Experiences are not in reverse chronological order (-4 pts)",
+        details: "Your roles should be listed with the most recent job at the top and oldest at the bottom. Recruiters want to see your latest experience first. Reorder your work history so the most recent role comes first.",
+      });
+    }
+  }
+
+  // ── 12. Date Consistency (penalty up to -4 pts) ──
+  // Detect all date formats used across the entire resume
+  const dateFormats = {
+    fullMonth: [],    // "January 2020", "February 2024"
+    abbrMonth: [],    // "Jan 2020", "Feb 2024"
+    mmYYYY: [],       // "01/2020", "02/2024"
+    mmYY: [],         // "01/20", "02/24"
+    yearOnly: [],     // "2020 - 2024"
+    season: [],       // "Summer 2020", "Fall 2024"
+  };
+
+  const fullMonthPattern = /\b(january|february|march|april|may|june|july|august|september|october|november|december)\s+\d{4}\b/gi;
+  const abbrMonthPattern = /\b(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)\.?\s+\d{4}\b/gi;
+  const mmYYYYPattern = /\b(0?[1-9]|1[0-2])\/\d{4}\b/g;
+  const mmYYPattern = /\b(0?[1-9]|1[0-2])\/\d{2}\b/g;
+  const seasonPattern = /\b(spring|summer|fall|autumn|winter)\s+\d{4}\b/gi;
+
+  let m;
+  const fullMonthPositions = new Set();
+  while ((m = fullMonthPattern.exec(text)) !== null) {
+    dateFormats.fullMonth.push(m[0]);
+    fullMonthPositions.add(m.index);
+  }
+  while ((m = abbrMonthPattern.exec(text)) !== null) {
+    // Skip if this position was already matched as a full month (e.g. "Jan" inside "January")
+    if (!fullMonthPositions.has(m.index)) dateFormats.abbrMonth.push(m[0]);
+  }
+  while ((m = mmYYYYPattern.exec(text)) !== null) dateFormats.mmYYYY.push(m[0]);
+  while ((m = mmYYPattern.exec(text)) !== null) {
+    // Exclude if already matched as MM/YYYY
+    if (!dateFormats.mmYYYY.some((f) => f.startsWith(m[0]))) dateFormats.mmYY.push(m[0]);
+  }
+  while ((m = seasonPattern.exec(text)) !== null) dateFormats.season.push(m[0]);
+
+  // Count which month+year formats are actually used (excluding year-only and seasons)
+  const usedFormats = [];
+  if (dateFormats.fullMonth.length > 0) usedFormats.push({ name: "Full month and years", examples: dateFormats.fullMonth });
+  if (dateFormats.abbrMonth.length > 0) usedFormats.push({ name: "Abbreviated month and years", examples: dateFormats.abbrMonth });
+  if (dateFormats.mmYYYY.length > 0) usedFormats.push({ name: "MM/YYYY", examples: dateFormats.mmYYYY });
+  if (dateFormats.mmYY.length > 0) usedFormats.push({ name: "MM/YY", examples: dateFormats.mmYY });
+  if (dateFormats.season.length > 0) usedFormats.push({ name: "Seasons and year", examples: dateFormats.season });
+
+  if (usedFormats.length <= 1) {
+    feedback.push({
+      section: "Date Consistency",
+      status: "good",
+      msg: "Date formats are consistent throughout",
+      details: usedFormats.length === 1
+        ? `All dates use the ${usedFormats[0].name.toLowerCase()} format (e.g. ${usedFormats[0].examples.slice(0, 2).join(", ")}). Consistent formatting looks professional.`
+        : "No date formatting issues detected.",
+    });
+  } else {
+    // Multiple formats found — penalize
+    const datePenalty = Math.min((usedFormats.length - 1) * 2, 4);
+    total -= datePenalty;
+    const formatList = usedFormats.map((f) => `${f.name}: ${f.examples.slice(0, 3).join(", ")}`).join(". ");
+
+    feedback.push({
+      section: "Date Consistency",
+      status: usedFormats.length === 2 ? "warning" : "error",
+      msg: `${usedFormats.length} different date formats found (-${datePenalty} pts)`,
+      details: `Your dates are formatted inconsistently. ${formatList}. Choose one date format and stick to it throughout your resume. The most common formats are: "June 2016 - June 2017" (full month), "Jun 2016 - Jun 2017" (abbreviated), or "06/2016 - 06/2017" (MM/YYYY).`,
+    });
+  }
+
+  // ── 13. Weak Action Verbs (penalty up to -5 pts) ──
+  // Check bullets for weak/passive verb starts and suggest strong replacements
+  const weakVerbFindings = []; // { bullet, weakVerb, suggestions }
+  const weakVerbSet = new Set();
+
+  for (const bullet of bullets) {
+    const cleaned = bullet.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim();
+    const cleanedLower = cleaned.toLowerCase();
+
+    // Check against weak verbs — try multi-word matches first (longer keys first)
+    const sortedWeakKeys = Object.keys(WEAK_VERBS).sort((a, b) => b.length - a.length);
+    for (const weak of sortedWeakKeys) {
+      if (cleanedLower.startsWith(weak + " ") || cleanedLower.startsWith(weak + ",") || cleanedLower === weak) {
+        weakVerbFindings.push({
+          bullet: cleaned.length > 120 ? cleaned.slice(0, 117) + "..." : cleaned,
+          weakVerb: weak,
+          suggestions: WEAK_VERBS[weak],
+        });
+        weakVerbSet.add(weak);
+        break; // Only flag the first weak verb match per bullet
+      }
+    }
+  }
+
+  const weakVerbCount = weakVerbFindings.length;
+  const uniqueWeakVerbs = [...weakVerbSet];
+
+  if (weakVerbCount === 0) {
+    feedback.push({
+      section: "Action Verbs",
+      status: "good",
+      msg: "No weak action verbs detected",
+      details: "Your bullets use strong, compelling action verbs. This makes your achievements sound impactful and shows you took an active role in your work.",
+    });
+  } else {
+    const weakPenalty = Math.min(weakVerbCount * 2, 5);
+    total -= weakPenalty;
+
+    const verbList = uniqueWeakVerbs.map((v) => `"${v}"`).join(", ");
+    let details = `Found ${weakVerbCount} bullet${weakVerbCount > 1 ? "s" : ""} starting with weak verbs: ${verbList}. These verbs make your achievements sound less impactful and suggest you didn't take an active role in the work.\n`;
+
+    // Show each problematic bullet with its replacement suggestions
+    details += "\nBullets to strengthen:";
+    for (const finding of weakVerbFindings.slice(0, 5)) {
+      details += `\n• "${finding.bullet}"`;
+      details += `\n  "${finding.weakVerb}" → try: ${finding.suggestions.slice(0, 3).join(", ")}`;
+    }
+    if (weakVerbFindings.length > 5) {
+      details += `\n...and ${weakVerbFindings.length - 5} more`;
+    }
+
+    details += "\n\nStrong action verbs to use: Analyzed, Developed, Directed, Implemented, Spearheaded, Launched, Designed, Orchestrated, Streamlined, Pioneered, Revamped, Created, Improved, Collaborated, Introduced.";
+
+    feedback.push({
+      section: "Action Verbs",
+      status: weakVerbCount <= 2 ? "warning" : "error",
+      msg: `${weakVerbCount} weak action verb${weakVerbCount > 1 ? "s" : ""} found (-${weakPenalty} pts)`,
+      details,
+    });
+  }
+
+  // ── 14. Repetitive Action Verbs (penalty up to -4 pts) ──
+  // Count first-word verb frequency across all bullets
+  const verbFrequency = new Map();
+  for (const bullet of bullets) {
+    const cleaned = bullet.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim().toLowerCase();
+    const firstWord = cleaned.split(/\s+/)[0] || "";
+    // Only count actual verbs (at least 3 chars, not articles/prepositions)
+    const skipWords = new Set(["the", "a", "an", "in", "on", "at", "to", "for", "of", "with", "by", "as", "is", "was", "and", "or", "my", "our", "all", "new"]);
+    if (firstWord.length >= 3 && !skipWords.has(firstWord)) {
+      verbFrequency.set(firstWord, (verbFrequency.get(firstWord) || 0) + 1);
+    }
+  }
+
+  // Find overused verbs (used 3+ times)
+  const overusedVerbs = [...verbFrequency.entries()]
+    .filter(([, count]) => count >= 3)
+    .sort((a, b) => b[1] - a[1]);
+
+  if (overusedVerbs.length === 0) {
+    feedback.push({
+      section: "Verb Variety",
+      status: "good",
+      msg: "Good variety of action verbs throughout",
+      details: "No action verb is overused on your resume. This variety shows hiring managers you have a range of different skill sets and keeps your resume engaging to read.",
+    });
+  } else {
+    const repPenalty = Math.min(overusedVerbs.length * 2, 4);
+    total -= repPenalty;
+
+    const verbListDisplay = overusedVerbs
+      .map(([verb, count]) => `${verb.charAt(0).toUpperCase() + verb.slice(1)} (${count} times)`)
+      .join(", ");
+
+    // Suggest alternatives for each overused verb
+    let details = `Using the same action verb more than 2 times reduces your resume's impact and makes it harder for your achievements to stand out.\n\nOverused verbs:`;
+
+    for (const [verb, count] of overusedVerbs) {
+      details += `\n• ${verb.charAt(0).toUpperCase() + verb.slice(1)} — used ${count} times`;
+
+      // Find synonyms from POWER_VERBS that aren't already overused
+      const overusedSet = new Set(overusedVerbs.map(([v]) => v));
+      const synonymMap = {
+        developed: ["designed", "engineered", "built", "created", "crafted"],
+        managed: ["directed", "oversaw", "coordinated", "supervised", "led"],
+        led: ["spearheaded", "directed", "headed", "championed", "guided"],
+        created: ["designed", "developed", "built", "produced", "established"],
+        implemented: ["deployed", "executed", "launched", "introduced", "rolled out"],
+        improved: ["enhanced", "optimized", "strengthened", "elevated", "refined"],
+        built: ["engineered", "constructed", "developed", "designed", "assembled"],
+        designed: ["architected", "crafted", "devised", "created", "conceptualized"],
+        analyzed: ["evaluated", "assessed", "examined", "investigated", "reviewed"],
+        established: ["founded", "launched", "initiated", "set up", "introduced"],
+        delivered: ["produced", "completed", "executed", "provided", "shipped"],
+        reduced: ["decreased", "cut", "lowered", "minimized", "streamlined"],
+        increased: ["grew", "boosted", "expanded", "raised", "amplified"],
+        coordinated: ["orchestrated", "organized", "aligned", "synchronized", "facilitated"],
+        automated: ["streamlined", "mechanized", "systematized", "programmed"],
+        launched: ["introduced", "rolled out", "debuted", "initiated", "released"],
+        conducted: ["performed", "executed", "carried out", "administered"],
+        collaborated: ["partnered", "teamed up", "worked alongside", "co-led"],
+        generated: ["produced", "yielded", "created", "drove", "secured"],
+        resolved: ["addressed", "fixed", "remedied", "troubleshot", "rectified"],
+      };
+
+      const alts = synonymMap[verb] || POWER_VERBS.filter((pv) => pv !== verb && !overusedSet.has(pv)).slice(0, 5);
+      details += `\n  Try instead: ${alts.slice(0, 4).join(", ")}`;
+    }
+
+    details += "\n\nReview your bullets and replace repeated verbs with unique alternatives. This shows hiring managers you have a diverse range of skills and accomplishments.";
+
+    feedback.push({
+      section: "Verb Variety",
+      status: overusedVerbs.length <= 1 ? "warning" : "error",
+      msg: `${overusedVerbs.length} overused verb${overusedVerbs.length > 1 ? "s" : ""}: ${verbListDisplay} (-${repPenalty} pts)`,
+      details,
+    });
+  }
+
+  // ── 15. Job Fit / Role Relevance (penalty up to -6 pts) ──
+  // Score each bullet for relevance to the detected target role
+  const detectedRoleFit = detectRole(summaryText) || detectRole(lower);
+
+  if (detectedRoleFit && bullets.length >= 3) {
+    const roleKey = detectedRoleFit.role;
+    // Use extended relevance terms if available, fallback to skill map
+    const relevanceTerms = ROLE_RELEVANCE_TERMS[roleKey] || detectedRoleFit.skills;
+    const roleName = roleKey.charAt(0).toUpperCase() + roleKey.slice(1);
+
+    // Score each bullet: count how many relevance terms appear
+    const bulletScores = bullets.map((bullet) => {
+      const bLower = bullet.toLowerCase();
+      const matchedTerms = relevanceTerms.filter((term) => bLower.includes(term));
+      // A bullet is "relevant" if it matches 2+ terms, "medium" if 1 term, "low" if 0
+      return { text: bullet.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim(), matches: matchedTerms.length };
+    });
+
+    const highRelevance = bulletScores.filter((b) => b.matches >= 2).length;
+    const mediumRelevance = bulletScores.filter((b) => b.matches === 1).length;
+    const lowRelevance = bulletScores.filter((b) => b.matches === 0).length;
+    const totalBulletsForFit = bulletScores.length;
+
+    // Weighted fit: high=1.0, medium=0.5, low=0.0
+    const fitScore = totalBulletsForFit > 0
+      ? Math.round(((highRelevance + mediumRelevance * 0.5) / totalBulletsForFit) * 100)
+      : 0;
+
+    // Collect low-relevance bullets to show user (max 6)
+    const lowBullets = bulletScores
+      .filter((b) => b.matches === 0)
+      .slice(0, 6)
+      .map((b) => b.text.length > 120 ? b.text.slice(0, 117) + "..." : b.text);
+    const medBullets = bulletScores
+      .filter((b) => b.matches === 1)
+      .slice(0, 3)
+      .map((b) => b.text.length > 120 ? b.text.slice(0, 117) + "..." : b.text);
+
+    let fitPenalty = 0;
+    let fitStatus;
+    let fitMsg;
+
+    if (fitScore >= 75) {
+      fitStatus = "good";
+      fitMsg = `${fitScore}% fit for ${roleName} — well-focused resume`;
+    } else if (fitScore >= 50) {
+      fitPenalty = 3;
+      fitStatus = "warning";
+      fitMsg = `${fitScore}% fit for ${roleName} — could be more focused`;
+    } else {
+      fitPenalty = 6;
+      fitStatus = "error";
+      fitMsg = `${fitScore}% fit for ${roleName} — too many irrelevant bullets`;
+    }
+
+    total -= fitPenalty;
+
+    let fitDetails = `Target: ${roleName}. ${highRelevance} high-relevance, ${mediumRelevance} medium-relevance, and ${lowRelevance} low-relevance bullet${lowRelevance !== 1 ? "s" : ""} out of ${totalBulletsForFit} total.`;
+
+    if (fitScore >= 75) {
+      fitDetails += " Your resume is well-focused on your target role. Most bullets show accomplishments and skills that a hiring manager in your field would value.";
+    } else {
+      fitDetails += " Your resume contains too many details that aren't relevant to your target role. Hiring managers may think you don't have the right experience.";
+
+      if (lowBullets.length > 0) {
+        fitDetails += `\n\nLow-relevance bullets to revise or remove:\n${lowBullets.map((b) => `• "${b}"`).join("\n")}`;
+      }
+      if (medBullets.length > 0) {
+        fitDetails += `\n\nMedium-relevance bullets that could be stronger:\n${medBullets.map((b) => `• "${b}"`).join("\n")}`;
+      }
+
+      fitDetails += "\n\nFor each bullet, ask: \"Would this matter to someone hiring for my target role?\" If not, either remove it or rewrite it to highlight relevant skills. For older or less relevant roles, list just 1-2 relevant bullets or remove them entirely.";
+    }
+
+    if (fitPenalty > 0) fitMsg += ` (-${fitPenalty} pts)`;
+
+    feedback.push({
+      section: "Job Fit",
+      status: fitStatus,
+      msg: fitMsg,
+      details: fitDetails,
+    });
+  }
+
+  // ── 16. Industry Standards (penalty up to -6 pts) ──
+  // Check resume against industry-specific expectations for the detected role
+  const roleForStandards = detectRole(summaryText) || detectRole(lower);
+  const standards = roleForStandards ? INDUSTRY_STANDARDS[roleForStandards.role] : null;
+
+  if (standards) {
+    const roleName = standards.label;
+    const checks = [];
+    let stdPenalty = 0;
+
+    // Must-have tools/skills check
+    const missingMustHave = standards.mustHave.filter((tool) => !lower.includes(tool));
+    const foundMustHave = standards.mustHave.filter((tool) => lower.includes(tool));
+
+    if (missingMustHave.length === 0) {
+      checks.push({ status: "good", note: `Must-have skills present: ${foundMustHave.join(", ")}` });
+    } else {
+      stdPenalty += Math.min(missingMustHave.length * 2, 4);
+      checks.push({ status: "error", note: `Missing must-have skills for ${roleName}: ${missingMustHave.join(", ")}. These are considered baseline requirements in this industry.` });
+    }
+
+    // Nice-to-have tools check
+    const foundNiceToHave = standards.niceToHave.filter((tool) => lower.includes(tool));
+    const missingNiceToHave = standards.niceToHave.filter((tool) => !lower.includes(tool));
+    const niceToHaveRatio = standards.niceToHave.length > 0 ? foundNiceToHave.length / standards.niceToHave.length : 1;
+
+    if (niceToHaveRatio >= 0.4) {
+      checks.push({ status: "good", note: `${foundNiceToHave.length}/${standards.niceToHave.length} industry tools/skills found: ${foundNiceToHave.slice(0, 6).join(", ")}${foundNiceToHave.length > 6 ? "..." : ""}` });
+    } else if (niceToHaveRatio >= 0.2) {
+      checks.push({ status: "warning", note: `Only ${foundNiceToHave.length}/${standards.niceToHave.length} common ${roleName} tools found. Consider adding: ${missingNiceToHave.slice(0, 5).join(", ")}` });
+    } else {
+      stdPenalty += 1;
+      checks.push({ status: "error", note: `Only ${foundNiceToHave.length}/${standards.niceToHave.length} common ${roleName} tools found. Your tech stack looks thin for this industry. Add relevant tools: ${missingNiceToHave.slice(0, 5).join(", ")}` });
+    }
+
+    // Expected sections check (e.g., Projects for engineers, Portfolio for designers)
+    if (standards.expectedSections.length > 0) {
+      const missingSections = standards.expectedSections.filter((sec) => {
+        const sectionAliases = [sec, sec + "s"]; // e.g. "project" and "projects"
+        return !sectionAliases.some((a) => lower.includes(a));
+      });
+      if (missingSections.length === 0) {
+        checks.push({ status: "good", note: `Industry-expected sections present: ${standards.expectedSections.join(", ")}` });
+      } else {
+        checks.push({ status: "warning", note: `Consider adding a ${missingSections.map((s) => s.charAt(0).toUpperCase() + s.slice(1)).join(" / ")} section — this is standard in ${roleName} resumes` });
+      }
+    }
+
+    // Certifications check
+    if (standards.certs.length > 0) {
+      const foundCerts = standards.certs.filter((cert) => lower.includes(cert));
+      if (foundCerts.length > 0) {
+        checks.push({ status: "good", note: `Industry certifications found: ${foundCerts.join(", ")}` });
+      } else {
+        checks.push({ status: "warning", note: `No ${roleName} certifications detected. Relevant certs for this field: ${standards.certs.slice(0, 4).join(", ")}` });
+      }
+    }
+
+    // Industry tips
+    const tipsStr = standards.tips.map((t) => `• ${t}`).join("\n");
+
+    stdPenalty = Math.min(stdPenalty, 6);
+    total -= stdPenalty;
+
+    const goodCount = checks.filter((c) => c.status === "good").length;
+    const totalChecks = checks.length;
+    const hasErrors = checks.some((c) => c.status === "error");
+    const stdStatus = hasErrors ? (stdPenalty >= 4 ? "error" : "warning") : goodCount === totalChecks ? "good" : "warning";
+    const stdMsg = stdPenalty > 0
+      ? `${goodCount}/${totalChecks} ${roleName} standards met (-${stdPenalty} pts)`
+      : `${goodCount}/${totalChecks} ${roleName} industry standards met`;
+
+    let stdDetails = checks.map((c) => `${c.status === "good" ? "✓" : c.status === "warning" ? "!" : "✗"} ${c.note}`).join("\n");
+    stdDetails += `\n\nIndustry tips for ${roleName}:\n${tipsStr}`;
+
+    feedback.push({
+      section: "Industry Standards",
+      status: stdStatus,
+      msg: stdMsg,
+      details: stdDetails,
+    });
+  }
+
+  // ── 17. Personal Pronouns (penalty up to -4 pts) ──
+  const pronounsFound = [];
+  const seenPronouns = new Set();
+  for (const line of text.split(/\n/)) {
+    const lineLower = line.toLowerCase();
+    for (const pronoun of PERSONAL_PRONOUNS) {
+      // Match pronoun with word boundary awareness (the pronouns have trailing spaces where needed)
+      if (lineLower.includes(pronoun) && !seenPronouns.has(pronoun.trim())) {
+        seenPronouns.add(pronoun.trim());
+        pronounsFound.push({
+          pronoun: pronoun.trim(),
+          context: line.trim().length > 100 ? line.trim().slice(0, 97) + "..." : line.trim(),
+        });
+      }
+    }
+  }
+
+  if (pronounsFound.length === 0) {
+    feedback.push({
+      section: "Personal Pronouns",
+      status: "good",
+      msg: "No personal pronouns found",
+      details: "Your resume correctly avoids first-person pronouns (I, me, my, we, our). Resumes should use an implied first person — start bullets with action verbs instead.",
+    });
+  } else {
+    const pronounPenalty = Math.min(pronounsFound.length * 2, 4);
+    total -= pronounPenalty;
+    const pronounList = [...seenPronouns].map((p) => `"${p}"`).join(", ");
+
+    let prDetails = `Found personal pronouns: ${pronounList}. Resumes should never use first-person pronouns. Use an implied first person by starting bullets with action verbs.\n`;
+    prDetails += "\nExamples:";
+    prDetails += "\n✗ \"I managed a team of 5 engineers\"";
+    prDetails += "\n✓ \"Managed a team of 5 engineers\"";
+    prDetails += "\n✗ \"My responsibilities included data analysis\"";
+    prDetails += "\n✓ \"Analyzed datasets to uncover trends and drive decisions\"";
+
+    feedback.push({
+      section: "Personal Pronouns",
+      status: pronounsFound.length <= 2 ? "warning" : "error",
+      msg: `${pronounsFound.length} personal pronoun${pronounsFound.length > 1 ? "s" : ""} found (-${pronounPenalty} pts)`,
+      details: prDetails,
+    });
+  }
+
+  // ── 18. Responsibility-Oriented Words (penalty up to -4 pts) ──
+  const respWordsFound = [];
+  for (const bullet of bullets) {
+    const bLower = bullet.toLowerCase();
+    for (const phrase of RESPONSIBILITY_WORDS) {
+      if (bLower.includes(phrase)) {
+        const cleaned = bullet.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim();
+        respWordsFound.push({
+          phrase,
+          bullet: cleaned.length > 120 ? cleaned.slice(0, 117) + "..." : cleaned,
+        });
+        break; // one match per bullet
+      }
+    }
+  }
+
+  if (respWordsFound.length === 0) {
+    feedback.push({
+      section: "Responsibility-Oriented Words",
+      status: "good",
+      msg: "No responsibility-oriented phrases found",
+      details: "Your bullets focus on achievements rather than duties. This is exactly what recruiters want — they care about what you accomplished, not just what you were assigned to do.",
+    });
+  } else {
+    const respPenalty = Math.min(respWordsFound.length * 2, 4);
+    total -= respPenalty;
+
+    let respDetails = `Found ${respWordsFound.length} bullet${respWordsFound.length > 1 ? "s" : ""} using responsibility-oriented language. These phrases make your resume read like a job description instead of a list of achievements.\n`;
+    respDetails += "\nBullets to rewrite:";
+    for (const finding of respWordsFound.slice(0, 5)) {
+      respDetails += `\n• "${finding.bullet}"`;
+      respDetails += `\n  Remove "${finding.phrase}" — start with an action verb instead`;
+    }
+    if (respWordsFound.length > 5) respDetails += `\n...and ${respWordsFound.length - 5} more`;
+
+    respDetails += "\n\nExample:";
+    respDetails += "\n✗ \"Responsible for managing a team of 10 developers\"";
+    respDetails += "\n✓ \"Managed a team of 10 developers, delivering 3 major releases on schedule\"";
+
+    feedback.push({
+      section: "Responsibility-Oriented Words",
+      status: respWordsFound.length <= 2 ? "warning" : "error",
+      msg: `${respWordsFound.length} responsibility phrase${respWordsFound.length > 1 ? "s" : ""} found (-${respPenalty} pts)`,
+      details: respDetails,
+    });
+  }
+
+  // ── 19. Filler Words (penalty up to -4 pts) ──
+  const fillersFound = [];
+  const seenFillers = new Set();
+  for (const bullet of bullets) {
+    const bLower = bullet.toLowerCase();
+    for (const filler of FILLER_WORDS) {
+      if (bLower.includes(filler) && !seenFillers.has(filler)) {
+        seenFillers.add(filler);
+        fillersFound.push(filler);
+      }
+    }
+  }
+
+  if (fillersFound.length === 0) {
+    feedback.push({
+      section: "Filler Words",
+      status: "good",
+      msg: "No filler words or unnecessary adverbs found",
+      details: "Your resume is concise and free of superfluous language. Every word counts — nice work keeping it tight.",
+    });
+  } else {
+    const fillerPenalty = Math.min(fillersFound.length, 4);
+    total -= fillerPenalty;
+    const fillerDisplay = fillersFound.slice(0, 8).map((f) => `"${f}"`).join(", ");
+    const fillerExtra = fillersFound.length > 8 ? ` and ${fillersFound.length - 8} more` : "";
+
+    let fillerDetails = `Found filler words: ${fillerDisplay}${fillerExtra}. These words take up space and dilute your achievements.\n`;
+    fillerDetails += "\nWhy remove them:";
+    fillerDetails += "\n• Unnecessary: Phrases like \"in order to\" or \"as needed\" don't add anything important";
+    fillerDetails += "\n• Vague: Adverbs like \"successfully\" or \"effectively\" are too general. Use specific metrics instead";
+    fillerDetails += "\n• Space-wasting: Every word counts — fillers take up space you could use for achievements";
+    fillerDetails += "\n\nExample:";
+    fillerDetails += "\n✗ \"Successfully and effectively developed a new system quickly\"";
+    fillerDetails += "\n✓ \"Developed a new system in 6 months, 3 months ahead of schedule\"";
+
+    feedback.push({
+      section: "Filler Words",
+      status: fillersFound.length <= 3 ? "warning" : "error",
+      msg: `${fillersFound.length} filler word${fillersFound.length > 1 ? "s" : ""} found (-${fillerPenalty} pts)`,
+      details: fillerDetails,
+    });
+  }
+
+  // ── 20. Bullet Point Length (penalty up to -3 pts) ──
+  const shortBullets = []; // under 12 words
+  const longBullets = [];  // over 35 words
+  for (const bullet of bullets) {
+    const cleaned = bullet.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim();
+    const wordCount = cleaned.split(/\s+/).filter(Boolean).length;
+    if (wordCount < 12 && wordCount > 0) {
+      shortBullets.push({ text: cleaned, words: wordCount });
+    } else if (wordCount > 35) {
+      longBullets.push({ text: cleaned.length > 120 ? cleaned.slice(0, 117) + "..." : cleaned, words: wordCount });
+    }
+  }
+
+  const lengthIssues = shortBullets.length + longBullets.length;
+
+  if (lengthIssues === 0) {
+    feedback.push({
+      section: "Bullet Length",
+      status: "good",
+      msg: "All bullet points are well-sized (12-35 words)",
+      details: "Your bullet points are the right length — long enough to convey achievements but short enough to be scannable. Great balance.",
+    });
+  } else {
+    const lengthPenalty = Math.min(lengthIssues, 3);
+    total -= lengthPenalty;
+
+    let lengthDetails = "";
+
+    if (shortBullets.length > 0) {
+      lengthDetails += `${shortBullets.length} bullet${shortBullets.length > 1 ? "s are" : " is"} too short (under 12 words). Adding more detail — numbers, specifics, and outcomes — can showcase your achievements more effectively.\n`;
+      lengthDetails += "\nShort bullets to expand:";
+      for (const b of shortBullets.slice(0, 4)) {
+        lengthDetails += `\n• "${b.text}" (${b.words} words)`;
+      }
+      if (shortBullets.length > 4) lengthDetails += `\n...and ${shortBullets.length - 4} more`;
+    }
+
+    if (longBullets.length > 0) {
+      if (shortBullets.length > 0) lengthDetails += "\n\n";
+      lengthDetails += `${longBullets.length} bullet${longBullets.length > 1 ? "s are" : " is"} too long (over 35 words). Reduce the length or split into two bullets to improve readability.\n`;
+      lengthDetails += "\nLong bullets to shorten:";
+      for (const b of longBullets.slice(0, 4)) {
+        lengthDetails += `\n• "${b.text}" (${b.words} words)`;
+      }
+      if (longBullets.length > 4) lengthDetails += `\n...and ${longBullets.length - 4} more`;
+    }
+
+    const lengthStatus = lengthIssues <= 2 ? "warning" : "error";
+    const parts = [];
+    if (shortBullets.length > 0) parts.push(`${shortBullets.length} too short`);
+    if (longBullets.length > 0) parts.push(`${longBullets.length} too long`);
+
+    feedback.push({
+      section: "Bullet Length",
+      status: lengthStatus,
+      msg: `${parts.join(", ")} (-${lengthPenalty} pts)`,
+      details: lengthDetails,
+    });
+  }
+
+  return { score: Math.max(Math.min(total, 100), 0), feedback };
 }
