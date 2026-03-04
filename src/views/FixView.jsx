@@ -24,6 +24,7 @@ const FixView = ({
   onImproveResume,
   onUpdateResume,
   resumeText,
+  candidateName,
 }) => {
   const [showImproved, setShowImproved] = useState(true);
   const isPdf = resumeFileType === "application/pdf";
@@ -60,7 +61,10 @@ const FixView = ({
                 if (!activeUrl) return;
                 const a = document.createElement("a");
                 a.href = activeUrl;
-                a.download = isShowingImproved ? "Improved_Resume.pdf" : (resumeFileName || "Resume.pdf");
+                const safeName = candidateName ? candidateName.replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_") : "";
+                a.download = isShowingImproved
+                  ? (safeName ? `${safeName}_Resume.pdf` : "Improved_Resume.pdf")
+                  : (resumeFileName || "Resume.pdf");
                 document.body.appendChild(a);
                 a.click();
                 document.body.removeChild(a);

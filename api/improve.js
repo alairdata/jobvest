@@ -79,7 +79,8 @@ Rules:
   - Timeframes: "within 3 months", "over 6 months"
   - Revenue/cost: keep proportional to company size
   Examples: "managed a team" → "Managed a team of 5 engineers", "improved performance" → "Improved system performance by 25%", "handled customer issues" → "Resolved 50+ customer issues weekly with 95% satisfaction rate"
-- Mark any inserted placeholder number with [*] at the end of that bullet so the user knows to verify it. Example: "Reduced deployment time by 30% through CI/CD automation [*]"`;
+- Do NOT add any markers like [*] or asterisks to bullets. Keep bullets clean.
+- If you inserted any estimated numbers, add a single note at the very top of the JSON in a "note" field (e.g., "note": "Some metrics are estimates based on role context — verify and adjust to match your actual results.") so the user knows to review.`;
 
   const userMessage = feedbackSummary
     ? `CRITICAL ISSUES TO FIX (address every single one):\n\n${feedbackSummary}\n\n---\n\nOriginal resume text:\n\n${resumeText}`

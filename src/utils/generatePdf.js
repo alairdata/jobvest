@@ -73,6 +73,12 @@ export function generateResumePdf(data) {
   doc.line(MARGIN, y, PAGE_W - MARGIN, y);
   y += 12;
 
+  // ── Note (if AI inserted estimated metrics) ──
+  if (data.note) {
+    drawText(data.note, MARGIN, 8, { color: "#888888" });
+    y += 6;
+  }
+
   // ── Sections ──
   for (const section of data.sections || []) {
     checkPageBreak(30);

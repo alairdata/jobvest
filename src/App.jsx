@@ -43,6 +43,7 @@ const App = () => {
   const [improvedResumeUrl, setImprovedResumeUrl] = useState(null);
   const [improvedScore, setImprovedScore] = useState(null);
   const [improvedFeedback, setImprovedFeedback] = useState(null);
+  const [candidateName, setCandidateName] = useState("");
 
   // Clean up object URL when file changes
   useEffect(() => {
@@ -118,6 +119,9 @@ const App = () => {
       }
 
       const data = await res.json();
+
+      // Store candidate name for download filename
+      if (data.name) setCandidateName(data.name);
 
       // Generate PDF from structured response
       const pdfUrl = generateResumePdf(data);
@@ -222,6 +226,7 @@ const App = () => {
           improvedResumeUrl={improvedResumeUrl}
           improvedScore={improvedScore}
           improvedFeedback={improvedFeedback}
+          candidateName={candidateName}
           onImproveResume={handleImproveResume}
           onUpdateResume={handleImportResume}
           resumeText={resumeText}
