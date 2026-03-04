@@ -149,7 +149,9 @@ const App = () => {
       }
       const improvedText = textParts.join("\n");
       const pageCount = Math.ceil(improvedText.length / 3000) || 1;
+      console.log("Improved text length:", improvedText.length, "pages:", pageCount);
       const result = analyzeResume(improvedText, pageCount);
+      console.log("Improved score:", result.score, "feedback items:", result.feedback.length);
 
       setImprovedScore(result.score);
       setImprovedFeedback(result.feedback);
@@ -177,7 +179,9 @@ const App = () => {
       try {
         const { text, pageCount } = await parseResume(file);
         setResumeText(text);
+        console.log("Original text length:", text.length, "pages:", pageCount);
         const result = analyzeResume(text, pageCount);
+        console.log("Original score:", result.score, "feedback items:", result.feedback.length);
         setResumeScore(result.score);
         setResumeFeedback(result.feedback);
       } catch (err) {
