@@ -1,5 +1,17 @@
-// ── Personal pronouns (should never appear in resumes) ──
-const PERSONAL_PRONOUNS = ["i ", "i'm", "i've", "i'd", "my ", "me ", "myself", "we ", "our ", "ours", "ourselves"];
+// ── Personal pronouns regex patterns (word-boundary safe) ──
+const PERSONAL_PRONOUN_PATTERNS = [
+  { pattern: /\bi\b(?!\.\w)/g, label: "I" },       // "I" but not "i.e."
+  { pattern: /\bi'm\b/gi, label: "I'm" },
+  { pattern: /\bi've\b/gi, label: "I've" },
+  { pattern: /\bi'd\b/gi, label: "I'd" },
+  { pattern: /\bmy\b/gi, label: "my" },
+  { pattern: /\bme\b/gi, label: "me" },
+  { pattern: /\bmyself\b/gi, label: "myself" },
+  { pattern: /\bwe\b/gi, label: "we" },
+  { pattern: /\bour\b/gi, label: "our" },
+  { pattern: /\bours\b/gi, label: "ours" },
+  { pattern: /\bourselves\b/gi, label: "ourselves" },
+];
 
 // ── Responsibility-oriented phrases (passive, should be rewritten) ──
 const RESPONSIBILITY_WORDS = [
@@ -11,7 +23,7 @@ const RESPONSIBILITY_WORDS = [
 // ── Filler words and adverbs that waste space ──
 const FILLER_WORDS = [
   "effectively", "successfully", "basically", "essentially", "significantly",
-  "greatly", "tremendously", "extremely", "highly", "very",
+  "greatly", "tremendously", "extremely", "very",
   "really", "quite", "fairly", "rather", "somewhat",
   "in order to", "as needed", "on a daily basis", "on a regular basis",
   "as well as", "due to the fact that", "in addition to",
@@ -20,7 +32,7 @@ const FILLER_WORDS = [
   "various", "numerous", "several different", "multiple different",
   "helped to", "was able to", "served as", "acted as",
   "quickly", "slowly", "carefully", "diligently", "consistently",
-  "proactively", "strategically", "thoughtfully",
+  "strategically", "thoughtfully",
 ];
 
 // ── Vague buzzwords & clichés that add little value ──
@@ -33,11 +45,11 @@ const BUZZWORDS = [
   "passionate", "motivated", "dynamic", "strategic thinker",
   "excellent communication skills", "communication skills",
   "time management", "multitasker", "fast learner", "quick learner",
-  "proactive", "innovative thinker", "creative thinker",
+  "innovative thinker", "creative thinker",
   "goal oriented", "goal-oriented", "self motivated", "self-motivated",
   "works well under pressure", "good interpersonal skills",
   "interpersonal skills", "leadership skills", "analytical skills",
-  "proven track record", "responsible for", "out of the box",
+  "proven track record", "out of the box",
   "best of breed", "thought leader", "value added", "value-added",
   "highly motivated", "highly organized", "strong communicator",
   "dedicated professional", "seasoned professional",
@@ -1600,15 +1612,19 @@ export function analyzeResume(text, pageCount = 1) {
   // ── 17. Personal Pronouns (penalty up to -4 pts) ──
   const pronounsFound = [];
   const seenPronouns = new Set();
-  for (const line of text.split(/\n/)) {
-    const lineLower = line.toLowerCase();
-    for (const pronoun of PERSONAL_PRONOUNS) {
-      // Match pronoun with word boundary awareness (the pronouns have trailing spaces where needed)
-      if (lineLower.includes(pronoun) && !seenPronouns.has(pronoun.trim())) {
-        seenPronouns.add(pronoun.trim());
+  // Only check bullet lines and summary — skip headers, company names, etc.
+  const linesToCheck = [...bullets];
+  if (summaryText) linesToCheck.push(summaryText);
+
+  for (const line of linesToCheck) {
+    for (const { pattern, label } of PERSONAL_PRONOUN_PATTERNS) {
+      pattern.lastIndex = 0; // reset regex state
+      if (pattern.test(line) && !seenPronouns.has(label.toLowerCase())) {
+        seenPronouns.add(label.toLowerCase());
+        const trimmed = line.replace(/^\s*[•\-*▪●\d.]\s*/, "").trim();
         pronounsFound.push({
-          pronoun: pronoun.trim(),
-          context: line.trim().length > 100 ? line.trim().slice(0, 97) + "..." : line.trim(),
+          pronoun: label,
+          context: trimmed.length > 100 ? trimmed.slice(0, 97) + "..." : trimmed,
         });
       }
     }

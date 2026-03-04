@@ -106,7 +106,7 @@ const FixView = ({
             <div className="py-2.5 px-4 bg-amber-50 border-b border-amber-200 flex gap-2 items-start shrink-0">
               <span className="text-sm shrink-0">⚠️</span>
               <p className="text-[10px] text-amber-800 leading-relaxed">
-                <strong>Review before using:</strong> Bullets marked with [*] contain estimated numbers. Update them with your real figures before submitting applications.
+                <strong>Review before using:</strong> Some metrics may be estimates based on your role context. Verify and adjust all numbers to match your actual results before submitting.
               </p>
             </div>
           )}

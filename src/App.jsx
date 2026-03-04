@@ -165,7 +165,8 @@ const App = () => {
         const result = analyzeResume(text, pageCount);
         setResumeScore(result.score);
         setResumeFeedback(result.feedback);
-      } catch {
+      } catch (err) {
+        console.error("Resume analysis failed:", err);
         setResumeScore(null);
         setResumeFeedback(null);
         setResumeText("");
