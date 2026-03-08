@@ -346,9 +346,14 @@ const LaunchView = ({
 
                     <button
                       onClick={() => setMatchStep(2)}
-                      className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+                      disabled={afterScore === null}
+                      className={`w-full py-[13px] rounded-xl border-none text-sm font-bold font-sans shadow-[0_2px_12px_rgba(255,140,66,0.2)] ${
+                        afterScore === null
+                          ? "opacity-50 cursor-not-allowed bg-stone-300 text-stone-500"
+                          : "cursor-pointer bg-gradient-to-br from-brand to-brand-dark text-white"
+                      }`}
                     >
-                      See What We Found →
+                      {afterScore === null ? "Preparing results..." : "See What We Found →"}
                     </button>
                   </div>
                 )}
