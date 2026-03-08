@@ -48,6 +48,7 @@ const App = () => {
   // Tailored resume state
   const [tailoredResumeUrl, setTailoredResumeUrl] = useState(null);
   const [tailoredCandidateName, setTailoredCandidateName] = useState("");
+  const [tailoredAtsScore, setTailoredAtsScore] = useState(null);
 
   // Clean up object URL when file changes
   useEffect(() => {
@@ -97,6 +98,7 @@ const App = () => {
     setAtsFeedback(null);
     if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
     setTailoredResumeUrl(null);
+    setTailoredAtsScore(null);
   };
 
   const handleOpenSidebar = () => {
@@ -184,6 +186,7 @@ const App = () => {
       URL.revokeObjectURL(tailoredResumeUrl);
       setTailoredResumeUrl(null);
     }
+    setTailoredAtsScore(null);
 
     try {
       const res = await fetch("/api/tailor", {
@@ -203,6 +206,39 @@ const App = () => {
 
       const pdfUrl = generateResumePdf(data);
       setTailoredResumeUrl(pdfUrl);
+
+      // Build plain text from tailored resume and re-score against JD
+      const textParts = [];
+      if (data.name) textParts.push(data.name);
+      if (data.contact) textParts.push(data.contact);
+      for (const section of data.sections || []) {
+        textParts.push(`\n${section.title}`);
+        if (section.content) textParts.push(section.content);
+        if (section.items) {
+          for (const item of section.items) {
+            if (item.title) textParts.push(item.title);
+            if (item.subtitle) textParts.push(item.subtitle);
+            if (item.bullets) {
+              for (const bullet of item.bullets) {
+                textParts.push(`• ${bullet}`);
+              }
+            }
+          }
+        }
+      }
+      const tailoredText = textParts.join("\n");
+
+      // Re-score the tailored resume against the same JD
+      const scoreRes = await fetch("/api/ats-score", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText: tailoredText, jdText }),
+      });
+
+      if (scoreRes.ok) {
+        const scoreData = await scoreRes.json();
+        setTailoredAtsScore(scoreData.score);
+      }
     } catch (err) {
       console.error("Failed to tailor resume:", err);
       throw err; // Re-throw so LaunchView can handle UI
@@ -260,6 +296,7 @@ const App = () => {
     setAtsFeedback(null);
     if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
     setTailoredResumeUrl(null);
+    setTailoredAtsScore(null);
   };
 
   return (
@@ -322,6 +359,7 @@ const App = () => {
           onTailorResume={handleTailorResume}
           tailoredResumeUrl={tailoredResumeUrl}
           tailoredCandidateName={tailoredCandidateName}
+          tailoredAtsScore={tailoredAtsScore}
         />
       )}
       {tab === "log" && (

@@ -28,6 +28,7 @@ const LaunchView = ({
   onTailorResume,
   tailoredResumeUrl,
   tailoredCandidateName,
+  tailoredAtsScore,
 }) => {
   const [scoring, setScoring] = useState(false);
   // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
@@ -46,8 +47,8 @@ const LaunchView = ({
   const gaugeScore = atsScore !== null ? atsScore : strength;
   const atsMeta = getATSMeta(gaugeScore);
 
-  // Estimated post-tailor score
-  const afterScore = atsScore !== null ? Math.min(95, atsScore + 15) : null;
+  // Real post-tailor score from background re-scoring
+  const afterScore = tailoredAtsScore;
 
   const handleScoreMatch = async () => {
     if (!jdText.trim() || !resumeText || scoring) return;
@@ -67,6 +68,11 @@ const LaunchView = ({
       setAtsFeedback(data.feedback);
       setMismatchReason(data.mismatchReason || null);
       setMatchStep(1);
+
+      // If decent match, start tailoring in the background immediately
+      if (data.score >= 50) {
+        onTailorResume().catch(() => {});
+      }
     } catch (err) {
       alert("Scoring failed: " + err.message);
     } finally {
@@ -312,14 +318,21 @@ const LaunchView = ({
                         <span className="text-[10px] text-stone-500">
                           After tailoring
                         </span>
-                        <span className="text-[11px] font-mono text-green-600 font-semibold">
-                          ~{afterScore}%
-                        </span>
+                        {afterScore !== null ? (
+                          <span className="text-[11px] font-mono text-green-600 font-semibold">
+                            {afterScore}%
+                          </span>
+                        ) : (
+                          <span className="text-[10px] text-stone-400 flex items-center gap-1">
+                            <span className="inline-block w-3 h-3 border-[1.5px] border-stone-300 border-t-stone-500 rounded-full animate-spin" />
+                            Calculating...
+                          </span>
+                        )}
                       </div>
                       <div className="h-1 rounded bg-slate-100 overflow-hidden">
                         <div
-                          className="h-full bg-green-600 rounded transition-[width] duration-500"
-                          style={{ width: `${afterScore}%` }}
+                          className={`h-full rounded transition-[width] duration-500 ${afterScore !== null ? "bg-green-600" : "bg-stone-300 animate-pulse"}`}
+                          style={{ width: afterScore !== null ? `${afterScore}%` : "60%" }}
                         />
                       </div>
                       <p className="text-[9px] text-stone-400 mt-2">
@@ -367,14 +380,23 @@ const LaunchView = ({
 
                 <button
                   onClick={async () => {
+                    // If tailoring already finished in background, skip to step 4
+                    if (tailoredResumeUrl) {
+                      setMatchStep(4);
+                      return;
+                    }
                     setMatchStep(3);
                     quickTailor.start();
-                    try {
-                      await onTailorResume();
-                    } catch (err) {
-                      alert("Tailoring failed: " + err.message);
-                      setMatchStep(2);
-                      quickTailor.reset();
+                    // Tailoring was already kicked off in background after scoring,
+                    // so we just wait for it. If it failed silently, retry.
+                    if (!tailoredResumeUrl) {
+                      try {
+                        await onTailorResume();
+                      } catch (err) {
+                        alert("Tailoring failed: " + err.message);
+                        setMatchStep(2);
+                        quickTailor.reset();
+                      }
                     }
                   }}
                   className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
@@ -412,7 +434,7 @@ const LaunchView = ({
               <div>
                 <ATSResultCard
                   before={atsScore ?? 68}
-                  after={afterScore ?? 83}
+                  after={tailoredAtsScore ?? atsScore ?? 68}
                 />
                 <div className="mb-3.5 mt-2.5">
                   {[
