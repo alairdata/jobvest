@@ -24,6 +24,8 @@ Return ONLY valid JSON (no markdown fences, no explanation) in this exact struct
 
 {
   "score": <number 0-100>,
+  "jobTitle": "<role/position title extracted from the JD>",
+  "company": "<company name extracted from the JD, or 'Unknown' if not found>",
   "feedback": [
     {
       "section": "<category name>",

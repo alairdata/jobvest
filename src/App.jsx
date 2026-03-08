@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { applications } from "./data/applications";
+import { applications as defaultApplications } from "./data/applications";
 import { useTailor } from "./hooks/useTailor";
 import { parseResume } from "./utils/parseResume";
 import { analyzeResume } from "./utils/analyzeResume";
@@ -39,14 +39,17 @@ const App = () => {
   const [resumeFeedback, setResumeFeedback] = useState(saved?.resumeFeedback ?? null);
   const [analyzing, setAnalyzing] = useState(false);
   const [savedToProfile, setSavedToProfile] = useState(!!saved);
+  const [userApplications, setUserApplications] = useState(defaultApplications);
   const [appStatuses, setAppStatuses] = useState(
-    applications.map((a) => a.status)
+    defaultApplications.map((a) => a.status)
   );
 
   // ATS scoring state
   const [jdText, setJdText] = useState("");
   const [atsScore, setAtsScore] = useState(null);
   const [atsFeedback, setAtsFeedback] = useState(null);
+  const [atsJobTitle, setAtsJobTitle] = useState("");
+  const [atsCompany, setAtsCompany] = useState("");
 
   // Improve resume state
   const [resumeText, setResumeText] = useState(saved?.resumeText || "");
@@ -107,9 +110,26 @@ const App = () => {
     setJdText("");
     setAtsScore(null);
     setAtsFeedback(null);
+    setAtsJobTitle("");
+    setAtsCompany("");
     if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
     setTailoredResumeUrl(null);
     setTailoredAtsScore(null);
+  };
+
+  const handleMarkApplied = () => {
+    const today = new Date();
+    const dateStr = today.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+    const newApp = {
+      role: atsJobTitle || "Untitled Role",
+      company: atsCompany || "Unknown",
+      status: "applied",
+      date: dateStr,
+      ats: tailoredAtsScore ?? atsScore ?? 0,
+      platform: "Pasted",
+    };
+    setUserApplications((prev) => [newApp, ...prev]);
+    setAppStatuses((prev) => ["applied", ...prev]);
   };
 
   const handleOpenSidebar = () => {
@@ -387,10 +407,15 @@ const App = () => {
           tailoredResumeUrl={tailoredResumeUrl}
           tailoredCandidateName={tailoredCandidateName}
           tailoredAtsScore={tailoredAtsScore}
+          onMarkApplied={handleMarkApplied}
+          setAtsJobTitle={setAtsJobTitle}
+          setAtsCompany={setAtsCompany}
+          applications={userApplications}
         />
       )}
       {tab === "log" && (
         <LogView
+          applications={userApplications}
           appStatuses={appStatuses}
           updateStatus={updateStatus}
           openMenu={openMenu}

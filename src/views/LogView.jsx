@@ -1,8 +1,8 @@
-import { applications, statusMap, allStatuses } from "../data/applications";
+import { statusMap, allStatuses } from "../data/applications";
 import { getATSMeta } from "../utils/scoring";
 import StatusMenu from "../components/StatusMenu";
 
-const LogView = ({ appStatuses, updateStatus, openMenu, setOpenMenu }) => {
+const LogView = ({ applications, appStatuses, updateStatus, openMenu, setOpenMenu }) => {
   const total = applications.length;
   const stages = [
     { label: "Applied", count: appStatuses.filter((s) => ["applied", "interview", "offered", "accepted", "pending"].includes(s)).length, color: "#60a5fa" },

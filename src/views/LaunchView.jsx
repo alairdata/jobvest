@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { launchStrength, getStrengthMeta, getATSMeta } from "../utils/scoring";
 import { launchFeedback } from "../data/feedback";
-import { applications, statusMap } from "../data/applications";
+import { statusMap } from "../data/applications";
 import ScoreGauge from "../components/ScoreGauge";
 import ScoreTypeBadge from "../components/ScoreTypeBadge";
 import ATSResultCard from "../components/ATSResultCard";
@@ -29,11 +29,16 @@ const LaunchView = ({
   tailoredResumeUrl,
   tailoredCandidateName,
   tailoredAtsScore,
+  onMarkApplied,
+  setAtsJobTitle,
+  setAtsCompany,
+  applications,
 }) => {
   const [scoring, setScoring] = useState(false);
   // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
   const [matchStep, setMatchStep] = useState(0);
   const [mismatchReason, setMismatchReason] = useState(null);
+  const [markedApplied, setMarkedApplied] = useState(false);
 
   // Auto-advance to step 4 when both animation and API call are done
   useEffect(() => {
@@ -67,6 +72,8 @@ const LaunchView = ({
       setAtsScore(data.score);
       setAtsFeedback(data.feedback);
       setMismatchReason(data.mismatchReason || null);
+      if (data.jobTitle) setAtsJobTitle(data.jobTitle);
+      if (data.company) setAtsCompany(data.company);
       setMatchStep(1);
 
       // If decent match (but not already excellent), start tailoring in the background
@@ -91,6 +98,7 @@ const LaunchView = ({
       setAtsFeedback(null);
       setMismatchReason(null);
       setMatchStep(0);
+      setMarkedApplied(false);
     }
   };
 
@@ -306,14 +314,28 @@ const LaunchView = ({
                     </div>
 
                     <button
+                      onClick={() => { setMarkedApplied(true); onMarkApplied(); }}
+                      className={`w-full py-[13px] rounded-xl border-none text-sm font-bold font-sans transition-all ${
+                        markedApplied
+                          ? "bg-green-50 border border-green-200 text-green-700 cursor-default"
+                          : "cursor-pointer bg-green-600 text-white shadow-[0_2px_12px_rgba(22,163,74,0.2)]"
+                      }`}
+                      style={markedApplied ? { border: "1.5px solid #bbf7d0" } : {}}
+                      disabled={markedApplied}
+                    >
+                      {markedApplied ? "✓ Applied!" : "I applied for this job!"}
+                    </button>
+
+                    <button
                       onClick={() => {
                         setAtsScore(null);
                         setAtsFeedback(null);
                         setMismatchReason(null);
                         setMatchStep(0);
+                        setMarkedApplied(false);
                         setJdText("");
                       }}
-                      className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-green-600 text-white shadow-[0_2px_12px_rgba(22,163,74,0.2)]"
+                      className="w-full mt-2 py-[11px] rounded-xl border border-stone-200 bg-white cursor-pointer text-[12px] font-semibold font-sans text-stone-500"
                     >
                       Try Another Job Description
                     </button>
@@ -510,6 +532,19 @@ const LaunchView = ({
                     ↓ Download PDF
                   </button>
                 </div>
+
+                <button
+                  onClick={() => { setMarkedApplied(true); onMarkApplied(); }}
+                  className={`w-full mt-3 py-[13px] rounded-xl border-none text-[13px] font-bold font-sans transition-all ${
+                    markedApplied
+                      ? "bg-green-50 text-green-700 cursor-default"
+                      : "cursor-pointer bg-[#1a1a1a] text-white shadow-[0_2px_12px_rgba(0,0,0,0.08)]"
+                  }`}
+                  style={markedApplied ? { border: "1.5px solid #bbf7d0" } : {}}
+                  disabled={markedApplied}
+                >
+                  {markedApplied ? "✓ Applied!" : "I applied for this job!"}
+                </button>
               </div>
             )}
           </div>
