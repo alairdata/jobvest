@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { applications as defaultApplications } from "./data/applications";
 import { useTailor } from "./hooks/useTailor";
 import { parseResume } from "./utils/parseResume";
@@ -12,10 +13,42 @@ import LaunchView from "./views/LaunchView";
 import LogView from "./views/LogView";
 import SidebarOverlay from "./views/SidebarOverlay";
 import SettingsPanel from "./views/SettingsPanel";
+import AuthView from "./views/AuthView";
+import * as sync from "./lib/sync";
 
 const STORAGE_KEY = "jobvest_saved_resume";
+const SETTINGS_KEY = "jobvest_settings";
+const GUEST_KEY = "jobvest_guest_mode";
 
-const App = () => {
+const defaultSettings = {
+  profile: { name: "", email: "" },
+  notifications: { email: true, browser: false, weekly: true },
+  tailorCount: 0,
+  tailorResetMonth: new Date().toISOString().slice(0, 7),
+};
+
+const loadSettings = () => {
+  try {
+    const raw = localStorage.getItem(SETTINGS_KEY);
+    if (!raw) return { ...defaultSettings };
+    const parsed = JSON.parse(raw);
+    const currentMonth = new Date().toISOString().slice(0, 7);
+    if (parsed.tailorResetMonth !== currentMonth) {
+      parsed.tailorCount = 0;
+      parsed.tailorResetMonth = currentMonth;
+    }
+    return { ...defaultSettings, ...parsed };
+  } catch { return { ...defaultSettings }; }
+};
+
+const AppContent = () => {
+  const { user, isAuthenticated, loading: authLoading, signOut } = useAuth();
+  const [guestMode, setGuestMode] = useState(
+    () => localStorage.getItem(GUEST_KEY) === "true"
+  );
+  const [cloudLoaded, setCloudLoaded] = useState(false);
+  const [cloudLoading, setCloudLoading] = useState(false);
+
   // Restore saved resume from localStorage on initial load
   const saved = (() => {
     try {
@@ -64,6 +97,133 @@ const App = () => {
   const [tailoredCandidateName, setTailoredCandidateName] = useState("");
   const [tailoredAtsScore, setTailoredAtsScore] = useState(null);
 
+  // Settings state
+  const [settings, setSettings] = useState(loadSettings);
+
+  // ── Sync from Supabase when user signs in ──
+  useEffect(() => {
+    if (!isAuthenticated || !user || cloudLoaded) return;
+
+    const loadCloudData = async () => {
+      setCloudLoading(true);
+      try {
+        // First, push any existing local data for new users
+        await sync.pushLocalDataToCloud(user.id);
+
+        // Then pull everything from cloud
+        const data = await sync.pullAllData(user.id);
+
+        // Apply profile
+        if (data.profile) {
+          const profilePatch = {
+            name: data.profile.name || "",
+            email: data.profile.email || user.email || "",
+          };
+          setSettings((prev) => {
+            const next = { ...prev, profile: profilePatch };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+            return next;
+          });
+          if (data.profile.name) setCandidateName(data.profile.name);
+        }
+
+        // Apply settings
+        if (data.settings) {
+          const currentMonth = new Date().toISOString().slice(0, 7);
+          const count = data.settings.tailor_reset_month === currentMonth
+            ? data.settings.tailor_count
+            : 0;
+          setSettings((prev) => {
+            const next = {
+              ...prev,
+              notifications: data.settings.notifications || prev.notifications,
+              tailorCount: count,
+              tailorResetMonth: currentMonth,
+            };
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+            return next;
+          });
+        }
+
+        // Apply resume
+        if (data.resume) {
+          setResumeText(data.resume.resume_text || "");
+          setResumeFileName(data.resume.file_name || "");
+          setResumeScore(data.resume.score ?? null);
+          setResumeFeedback(data.resume.feedback ?? null);
+          setCandidateName(data.resume.candidate_name || "");
+          setHasResume(true);
+          setSavedToProfile(true);
+
+          // Cache in localStorage too
+          localStorage.setItem(STORAGE_KEY, JSON.stringify({
+            resumeText: data.resume.resume_text,
+            resumeFileName: data.resume.file_name,
+            resumeScore: data.resume.score,
+            resumeFeedback: data.resume.feedback,
+            candidateName: data.resume.candidate_name,
+            savedAt: Date.now(),
+          }));
+        }
+
+        // Apply applications
+        if (data.applications && data.applications.length > 0) {
+          const apps = data.applications.map((a) => ({
+            id: a.id,
+            role: a.role,
+            company: a.company,
+            status: a.status,
+            date: a.date,
+            ats: a.ats_score,
+            platform: a.platform,
+          }));
+          setUserApplications(apps);
+          setAppStatuses(apps.map((a) => a.status));
+        }
+      } catch (err) {
+        console.warn("Failed to sync from cloud:", err);
+      } finally {
+        setCloudLoading(false);
+        setCloudLoaded(true);
+      }
+    };
+
+    loadCloudData();
+  }, [isAuthenticated, user, cloudLoaded]);
+
+  // Reset cloud state on sign out
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setCloudLoaded(false);
+    }
+  }, [isAuthenticated]);
+
+  const updateSettings = (patch) => {
+    setSettings((prev) => {
+      const next = { ...prev, ...patch };
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
+
+      // Sync to cloud
+      if (isAuthenticated && user) {
+        if (patch.profile) {
+          sync.updateProfile(user.id, {
+            name: patch.profile.name,
+            email: patch.profile.email,
+          }).catch(console.warn);
+        }
+        if (patch.notifications || patch.tailorCount !== undefined) {
+          sync.updateSettings(user.id, {
+            notifications: next.notifications,
+            tailor_count: next.tailorCount,
+            tailor_reset_month: next.tailorResetMonth,
+          }).catch(console.warn);
+        }
+      }
+
+      return next;
+    });
+  };
+
   // Clean up object URL when file changes
   useEffect(() => {
     if (resumeFile) {
@@ -99,6 +259,12 @@ const App = () => {
       return n;
     });
     setOpenMenu(null);
+
+    // Sync status change to cloud
+    if (isAuthenticated && user && userApplications[idx]?.id) {
+      sync.updateApplicationStatus(userApplications[idx].id, newStatus)
+        .catch(console.warn);
+    }
   };
 
   const handleToggleMode = () => {
@@ -130,6 +296,18 @@ const App = () => {
     };
     setUserApplications((prev) => [newApp, ...prev]);
     setAppStatuses((prev) => ["applied", ...prev]);
+
+    // Sync to cloud
+    if (isAuthenticated && user) {
+      sync.addApplication(user.id, newApp).then((saved) => {
+        // Update the local app with the cloud ID
+        setUserApplications((prev) => {
+          const copy = [...prev];
+          copy[0] = { ...copy[0], id: saved.id };
+          return copy;
+        });
+      }).catch(console.warn);
+    }
   };
 
   const handleOpenSidebar = () => {
@@ -141,7 +319,6 @@ const App = () => {
     if (improving || !resumeText) return;
 
     setImproving(true);
-    // Clean up previous improved URL
     if (improvedResumeUrl) {
       URL.revokeObjectURL(improvedResumeUrl);
       setImprovedResumeUrl(null);
@@ -166,15 +343,11 @@ const App = () => {
 
       const data = await res.json();
 
-      // Store candidate name for download filename
       if (data.name) setCandidateName(data.name);
 
-      // Generate PDF from structured response
       const pdfUrl = generateResumePdf(data);
       setImprovedResumeUrl(pdfUrl);
 
-      // Build plain text directly from structured JSON for accurate rescoring
-      // (avoids lossy PDF → text round-trip that mangles bullets and headers)
       const textParts = [];
       if (data.name) textParts.push(data.name);
       if (data.contact) textParts.push(data.contact);
@@ -209,10 +382,12 @@ const App = () => {
     }
   };
 
+  const TAILORS_MAX = 3;
+
   const handleTailorResume = async () => {
     if (!resumeText || !jdText.trim()) return;
+    if (settings.tailorCount >= TAILORS_MAX) return;
 
-    // Clean up previous tailored URL
     if (tailoredResumeUrl) {
       URL.revokeObjectURL(tailoredResumeUrl);
       setTailoredResumeUrl(null);
@@ -238,7 +413,6 @@ const App = () => {
       const pdfUrl = generateResumePdf(data);
       setTailoredResumeUrl(pdfUrl);
 
-      // Build plain text from tailored resume and re-score against JD
       const textParts = [];
       if (data.name) textParts.push(data.name);
       if (data.contact) textParts.push(data.contact);
@@ -259,7 +433,6 @@ const App = () => {
       }
       const tailoredText = textParts.join("\n");
 
-      // Re-score the tailored resume against the same JD
       const scoreRes = await fetch("/api/ats-score", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -270,9 +443,11 @@ const App = () => {
         const scoreData = await scoreRes.json();
         setTailoredAtsScore(scoreData.score);
       }
+
+      updateSettings({ tailorCount: settings.tailorCount + 1 });
     } catch (err) {
       console.error("Failed to tailor resume:", err);
-      throw err; // Re-throw so LaunchView can handle UI
+      throw err;
     }
   };
 
@@ -287,6 +462,17 @@ const App = () => {
     };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
     setSavedToProfile(true);
+
+    // Sync to cloud
+    if (isAuthenticated && user) {
+      sync.upsertResume(user.id, {
+        resume_text: resumeText,
+        file_name: resumeFileName,
+        score: resumeScore,
+        feedback: resumeFeedback,
+        candidate_name: candidateName,
+      }).catch(console.warn);
+    }
   };
 
   const handleUnsaveResume = () => {
@@ -303,6 +489,11 @@ const App = () => {
     setImprovedResumeUrl(null);
     setImprovedScore(null);
     setImprovedFeedback(null);
+
+    // Delete from cloud
+    if (isAuthenticated && user) {
+      sync.deleteResume(user.id).catch(console.warn);
+    }
   };
 
   const handleImportResume = async (file) => {
@@ -310,7 +501,6 @@ const App = () => {
     setResumeFileName(file.name);
     setResumeFile(file);
     setHasResume(true);
-    // Reset improved state on new upload
     if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
     setImprovedResumeUrl(null);
     setImprovedScore(null);
@@ -346,7 +536,6 @@ const App = () => {
     setHasResume(false);
     setMode("fix");
     setExpandedFeedback(null);
-    // Reset improved state
     if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
     setImprovedResumeUrl(null);
     setImprovedScore(null);
@@ -360,6 +549,90 @@ const App = () => {
     setTailoredAtsScore(null);
   };
 
+  const handleClearAllData = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(SETTINGS_KEY);
+    setSettings({ ...defaultSettings });
+    setSavedToProfile(false);
+    setHasResume(false);
+    setMode("fix");
+    setTab("home");
+    setResumeScore(null);
+    setResumeFeedback(null);
+    setResumeText("");
+    setResumeFileName("");
+    setResumeFile(null);
+    if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
+    setImprovedResumeUrl(null);
+    setImprovedScore(null);
+    setImprovedFeedback(null);
+    if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
+    setTailoredResumeUrl(null);
+    setTailoredAtsScore(null);
+    setSettingsOpen(false);
+
+    // Clear cloud data too
+    if (isAuthenticated && user) {
+      sync.deleteResume(user.id).catch(console.warn);
+      sync.updateSettings(user.id, {
+        notifications: defaultSettings.notifications,
+        tailor_count: 0,
+        tailor_reset_month: new Date().toISOString().slice(0, 7),
+      }).catch(console.warn);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      localStorage.removeItem(GUEST_KEY);
+      setCloudLoaded(false);
+      setGuestMode(false);
+    } catch (err) {
+      console.error("Sign out failed:", err);
+    }
+  };
+
+  const handleSkipAuth = () => {
+    localStorage.setItem(GUEST_KEY, "true");
+    setGuestMode(true);
+  };
+
+  // Derive profile name: settings > saved resume > user email > empty
+  const profileName = settings.profile.name || candidateName || user?.user_metadata?.full_name || "";
+
+  // Show auth screen if not authenticated and not in guest mode
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-lg font-bold animate-pulse">
+            ✧
+          </div>
+          <p className="text-sm text-stone-400">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated && !guestMode) {
+    return <AuthView onSkip={handleSkipAuth} />;
+  }
+
+  // Show loading overlay while syncing cloud data
+  if (isAuthenticated && cloudLoading) {
+    return (
+      <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-lg font-bold animate-pulse">
+            ✧
+          </div>
+          <p className="text-sm text-stone-400">Syncing your data...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fafaf8] font-sans text-[#1a1a1a]">
       <Header
@@ -370,6 +643,9 @@ const App = () => {
         onToggleMode={handleToggleMode}
         onOpenSidebar={handleOpenSidebar}
         onOpenSettings={() => setSettingsOpen(true)}
+        user={user}
+        isAuthenticated={isAuthenticated}
+        profileName={profileName}
       />
 
       {tab === "home" && !hasResume && (
@@ -448,10 +724,29 @@ const App = () => {
       )}
 
       {settingsOpen && (
-        <SettingsPanel onClose={() => setSettingsOpen(false)} />
+        <SettingsPanel
+          onClose={() => setSettingsOpen(false)}
+          profile={{ ...settings.profile, name: profileName }}
+          notifications={settings.notifications}
+          tailorsUsed={settings.tailorCount}
+          tailorsMax={TAILORS_MAX}
+          onUpdateProfile={(profile) => updateSettings({ profile })}
+          onUpdateNotifications={(notifications) => updateSettings({ notifications })}
+          onClearAllData={handleClearAllData}
+          isAuthenticated={isAuthenticated}
+          user={user}
+          onSignOut={handleSignOut}
+          guestMode={guestMode}
+        />
       )}
     </div>
   );
 };
+
+const App = () => (
+  <AuthProvider>
+    <AppContent />
+  </AuthProvider>
+);
 
 export default App;
