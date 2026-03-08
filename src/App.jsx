@@ -289,6 +289,22 @@ const App = () => {
     setSavedToProfile(true);
   };
 
+  const handleUnsaveResume = () => {
+    localStorage.removeItem(STORAGE_KEY);
+    setSavedToProfile(false);
+    setHasResume(false);
+    setMode("fix");
+    setResumeScore(null);
+    setResumeFeedback(null);
+    setResumeText("");
+    setResumeFileName("");
+    setResumeFile(null);
+    if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
+    setImprovedResumeUrl(null);
+    setImprovedScore(null);
+    setImprovedFeedback(null);
+  };
+
   const handleImportResume = async (file) => {
     setSavedToProfile(false);
     setResumeFileName(file.name);
@@ -381,6 +397,7 @@ const App = () => {
           onUpdateResume={handleImportResume}
           resumeText={resumeText}
           onSaveResume={handleSaveResume}
+          onUnsaveResume={handleUnsaveResume}
           savedToProfile={savedToProfile}
         />
       )}

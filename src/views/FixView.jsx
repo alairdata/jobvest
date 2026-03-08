@@ -26,6 +26,7 @@ const FixView = ({
   resumeText,
   candidateName,
   onSaveResume,
+  onUnsaveResume,
   savedToProfile,
 }) => {
   const [showImproved, setShowImproved] = useState(true);
@@ -44,6 +45,24 @@ const FixView = ({
 
   return (
     <div className="max-w-[1100px] mx-auto py-8 px-4 sm:px-6">
+      {/* Saved resume indicator */}
+      {savedToProfile && !resumeFile && (
+        <div className="flex items-center justify-between py-3 px-4 rounded-xl bg-blue-50 border border-blue-200 mb-5">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">💾</span>
+            <p className="text-[12px] text-blue-700 font-medium">
+              Viewing your saved resume · <span className="font-semibold">{resumeFileName || "Resume"}</span>
+            </p>
+          </div>
+          <button
+            onClick={onUnsaveResume}
+            className="py-1.5 px-3 rounded-lg border border-blue-200 bg-white text-blue-600 text-[11px] font-semibold cursor-pointer font-sans hover:bg-blue-50"
+          >
+            Clear saved &times;
+          </button>
+        </div>
+      )}
+
       <div className="text-center mb-8">
         <h1 className="font-serif text-[28px] font-extrabold mb-1.5 text-[#1a1a1a]">
           Great job! Let's take a closer look <span className="text-brand">✦</span>
