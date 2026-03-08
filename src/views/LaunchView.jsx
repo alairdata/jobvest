@@ -25,16 +25,19 @@ const LaunchView = ({
   setAtsScore,
   atsFeedback,
   setAtsFeedback,
+  onTailorResume,
+  tailoredResumeUrl,
+  tailoredCandidateName,
 }) => {
   const [scoring, setScoring] = useState(false);
   // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
   const [matchStep, setMatchStep] = useState(0);
   const [mismatchReason, setMismatchReason] = useState(null);
 
-  // Auto-advance to step 4 when tailoring finishes
+  // Auto-advance to step 4 when both animation and API call are done
   useEffect(() => {
-    if (quickTailor.done && matchStep === 3) setMatchStep(4);
-  }, [quickTailor.done, matchStep]);
+    if (quickTailor.done && tailoredResumeUrl && matchStep === 3) setMatchStep(4);
+  }, [quickTailor.done, tailoredResumeUrl, matchStep]);
 
   const strength = resumeScore ?? launchStrength;
   const meta = getStrengthMeta(strength);
@@ -363,9 +366,16 @@ const LaunchView = ({
                 )}
 
                 <button
-                  onClick={() => {
+                  onClick={async () => {
                     setMatchStep(3);
                     quickTailor.start();
+                    try {
+                      await onTailorResume();
+                    } catch (err) {
+                      alert("Tailoring failed: " + err.message);
+                      setMatchStep(2);
+                      quickTailor.reset();
+                    }
                   }}
                   className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
                 >
@@ -375,7 +385,7 @@ const LaunchView = ({
             )}
 
             {/* Step 3: Tailoring in progress */}
-            {matchStep === 3 && !quickTailor.done && (
+            {matchStep === 3 && !(quickTailor.done && tailoredResumeUrl) && (
               <div className="text-center py-4">
                 <div className="w-9 h-9 rounded-[10px] mx-auto mb-3 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-base text-white animate-[gp_2s_ease_infinite]">
                   ✧
@@ -384,12 +394,14 @@ const LaunchView = ({
                   Tailoring for this role...
                 </p>
                 <p className="text-[11px] text-stone-400 mb-3.5">
-                  Optimizing ATS Score · analyzing keywords
+                  {quickTailor.done && !tailoredResumeUrl
+                    ? "Almost there — finalizing your tailored resume..."
+                    : "Optimizing ATS Score · analyzing keywords"}
                 </p>
                 <div className="h-1 rounded bg-slate-100 overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-brand to-brand-dark rounded transition-[width] duration-500 ease-out"
-                    style={{ width: `${quickTailor.progress}%` }}
+                    style={{ width: `${quickTailor.done ? 95 : quickTailor.progress}%` }}
                   />
                 </div>
               </div>
@@ -416,11 +428,25 @@ const LaunchView = ({
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <button className="flex-1 py-3 rounded-[10px] border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_10px_rgba(255,140,66,0.2)]">
-                    ↓ Download .docx
-                  </button>
-                  <button className="py-3 px-4 rounded-[10px] border border-stone-200 cursor-pointer text-xs font-semibold font-sans bg-white text-stone-600">
-                    ↓ .pdf
+                  <button
+                    onClick={() => {
+                      if (!tailoredResumeUrl) return;
+                      const a = document.createElement("a");
+                      a.href = tailoredResumeUrl;
+                      const safeName = tailoredCandidateName
+                        ? tailoredCandidateName.replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_")
+                        : "";
+                      a.download = safeName
+                        ? `${safeName}_Tailored_Resume.pdf`
+                        : "Tailored_Resume.pdf";
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                    }}
+                    disabled={!tailoredResumeUrl}
+                    className="flex-1 py-3 rounded-[10px] border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_10px_rgba(255,140,66,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    ↓ Download PDF
                   </button>
                 </div>
               </div>

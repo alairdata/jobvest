@@ -45,6 +45,10 @@ const App = () => {
   const [improvedFeedback, setImprovedFeedback] = useState(null);
   const [candidateName, setCandidateName] = useState("");
 
+  // Tailored resume state
+  const [tailoredResumeUrl, setTailoredResumeUrl] = useState(null);
+  const [tailoredCandidateName, setTailoredCandidateName] = useState("");
+
   // Clean up object URL when file changes
   useEffect(() => {
     if (resumeFile) {
@@ -62,6 +66,13 @@ const App = () => {
       if (improvedResumeUrl) URL.revokeObjectURL(improvedResumeUrl);
     };
   }, [improvedResumeUrl]);
+
+  // Clean up tailored resume blob URL
+  useEffect(() => {
+    return () => {
+      if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
+    };
+  }, [tailoredResumeUrl]);
 
   const sidebarTailor = useTailor();
   const quickTailor = useTailor();
@@ -84,6 +95,8 @@ const App = () => {
     setJdText("");
     setAtsScore(null);
     setAtsFeedback(null);
+    if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
+    setTailoredResumeUrl(null);
   };
 
   const handleOpenSidebar = () => {
@@ -163,6 +176,39 @@ const App = () => {
     }
   };
 
+  const handleTailorResume = async () => {
+    if (!resumeText || !jdText.trim()) return;
+
+    // Clean up previous tailored URL
+    if (tailoredResumeUrl) {
+      URL.revokeObjectURL(tailoredResumeUrl);
+      setTailoredResumeUrl(null);
+    }
+
+    try {
+      const res = await fetch("/api/tailor", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ resumeText, jdText }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Server error ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (data.name) setTailoredCandidateName(data.name);
+
+      const pdfUrl = generateResumePdf(data);
+      setTailoredResumeUrl(pdfUrl);
+    } catch (err) {
+      console.error("Failed to tailor resume:", err);
+      throw err; // Re-throw so LaunchView can handle UI
+    }
+  };
+
   const handleImportResume = async (file) => {
     setResumeFileName(file.name);
     setResumeFile(file);
@@ -212,6 +258,8 @@ const App = () => {
     setJdText("");
     setAtsScore(null);
     setAtsFeedback(null);
+    if (tailoredResumeUrl) URL.revokeObjectURL(tailoredResumeUrl);
+    setTailoredResumeUrl(null);
   };
 
   return (
@@ -271,6 +319,9 @@ const App = () => {
           setAtsScore={setAtsScore}
           atsFeedback={atsFeedback}
           setAtsFeedback={setAtsFeedback}
+          onTailorResume={handleTailorResume}
+          tailoredResumeUrl={tailoredResumeUrl}
+          tailoredCandidateName={tailoredCandidateName}
         />
       )}
       {tab === "log" && (
