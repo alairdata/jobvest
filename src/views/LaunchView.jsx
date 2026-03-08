@@ -43,9 +43,9 @@ const LaunchView = ({
   const strength = resumeScore ?? launchStrength;
   const meta = getStrengthMeta(strength);
 
-  // Use real ATS score when available, fall back to resume strength
-  const gaugeScore = atsScore !== null ? atsScore : strength;
-  const atsMeta = getATSMeta(gaugeScore);
+  // Only show real ATS score — no fallback to resume strength
+  const gaugeScore = atsScore;
+  const atsMeta = atsScore !== null ? getATSMeta(atsScore) : null;
 
   // Real post-tailor score from background re-scoring
   const afterScore = tailoredAtsScore;
@@ -69,8 +69,8 @@ const LaunchView = ({
       setMismatchReason(data.mismatchReason || null);
       setMatchStep(1);
 
-      // If decent match, start tailoring in the background immediately
-      if (data.score >= 50) {
+      // If decent match (but not already excellent), start tailoring in the background
+      if (data.score >= 50 && data.score < 85) {
         onTailorResume().catch(() => {});
       }
     } catch (err) {
@@ -215,8 +215,8 @@ const LaunchView = ({
               </button>
             )}
 
-            {/* Step indicator — hidden for poor matches */}
-            {matchStep >= 1 && !(matchStep === 1 && atsScore < 50) && (
+            {/* Step indicator — hidden for poor matches and perfect fits */}
+            {matchStep >= 1 && !(matchStep === 1 && atsScore < 50) && !(matchStep === 1 && atsScore >= 85) && (
               <div className="flex items-center justify-center gap-1.5 mb-4">
                 {[1, 2, 3].map((s) => (
                   <div key={s} className="flex items-center gap-1.5">
@@ -284,8 +284,42 @@ const LaunchView = ({
                       ← Go Back & Revise Your Resume
                     </button>
                   </div>
+                ) : atsScore >= 85 ? (
+                  /* Excellent match — no tailoring needed */
+                  <div>
+                    <div className="p-3.5 rounded-[10px] bg-green-50 border border-green-200 mb-3.5">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-xs">&#10024;</span>
+                        <span className="text-[10px] font-bold text-green-700">
+                          Perfect Fit — {atsScore}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded bg-green-100 overflow-hidden mb-3">
+                        <div
+                          className="h-full rounded bg-green-500 transition-[width] duration-500"
+                          style={{ width: `${atsScore}%` }}
+                        />
+                      </div>
+                      <p className="text-[11px] text-green-700 leading-relaxed">
+                        Your resume already covers the key requirements for this role. No tailoring needed — go ahead and apply!
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setAtsScore(null);
+                        setAtsFeedback(null);
+                        setMismatchReason(null);
+                        setMatchStep(0);
+                        setJdText("");
+                      }}
+                      className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-green-600 text-white shadow-[0_2px_12px_rgba(22,163,74,0.2)]"
+                    >
+                      Try Another Job Description
+                    </button>
+                  </div>
                 ) : (
-                  /* Decent+ match — continue to findings & tailor */
+                  /* Decent match — continue to findings & tailor */
                   <div>
                     <div className="p-3 px-3.5 rounded-[10px] bg-warm-bg border border-warm-border mb-3.5">
                       <div className="flex items-center gap-1.5 mb-2">
@@ -534,17 +568,26 @@ const LaunchView = ({
                 ? "How well your resume matches this job description"
                 : "How well does your resume pass automated screening?"}
             </p>
-            <ScoreGauge value={gaugeScore} type="ats" />
-            <p
-              className="text-[10px] font-medium mt-2"
-              style={{ color: atsMeta.color }}
-            >
-              {atsMeta.sub}
-            </p>
-            {atsScore === null && (
-              <p className="text-[9px] text-stone-400 mt-1">
-                Paste a job description to see your real ATS score
-              </p>
+            {atsScore !== null ? (
+              <>
+                <ScoreGauge value={gaugeScore} type="ats" />
+                <p
+                  className="text-[10px] font-medium mt-2"
+                  style={{ color: atsMeta.color }}
+                >
+                  {atsMeta.sub}
+                </p>
+              </>
+            ) : (
+              <div className="mx-auto mt-6 mb-4 text-center">
+                <span className="text-5xl font-extrabold font-serif text-stone-200">—</span>
+                <p className="text-[11px] font-bold mt-1 tracking-[1.5px] font-mono text-stone-300">
+                  NOT SCORED
+                </p>
+                <p className="text-[10px] text-stone-400 mt-3">
+                  Paste a job description to see your ATS score
+                </p>
+              </div>
             )}
             <p
               onClick={() => {
