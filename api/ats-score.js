@@ -32,8 +32,16 @@ Return ONLY valid JSON (no markdown fences, no explanation) in this exact struct
       "details": "<2-3 sentence explanation with specific, actionable advice>"
     }
   ],
-  "missedKeywords": ["<keyword1>", "<keyword2>", ...]
+  "missedKeywords": ["<keyword1>", "<keyword2>", ...],
+  "mismatchReason": "<string or null>"
 }
+
+Rules for mismatchReason:
+- ONLY include this when the score is below 50 (poor match). Set to null otherwise.
+- Write 2-3 sentences explaining WHY the resume and job are fundamentally mismatched at a career/field level.
+- Be specific and semantic: mention the resume's field vs the job's field (e.g., "Your resume is built around data science and machine learning, but this role is a Sales Manager position focused on client acquisition and revenue targets. These are fundamentally different career paths.")
+- End with a constructive suggestion like "Consider updating your resume to highlight relevant transferable skills, or look for roles that better align with your background."
+- Do NOT just repeat the low score — explain the career-level mismatch in plain English.
 
 Rules for scoring:
 - 85-100: Excellent match — resume covers nearly all JD requirements

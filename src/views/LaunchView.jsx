@@ -29,6 +29,7 @@ const LaunchView = ({
   const [scoring, setScoring] = useState(false);
   // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
   const [matchStep, setMatchStep] = useState(0);
+  const [mismatchReason, setMismatchReason] = useState(null);
 
   // Auto-advance to step 4 when tailoring finishes
   useEffect(() => {
@@ -61,6 +62,7 @@ const LaunchView = ({
       const data = await res.json();
       setAtsScore(data.score);
       setAtsFeedback(data.feedback);
+      setMismatchReason(data.mismatchReason || null);
       setMatchStep(1);
     } catch (err) {
       alert("Scoring failed: " + err.message);
@@ -78,6 +80,7 @@ const LaunchView = ({
     if (atsScore !== null) {
       setAtsScore(null);
       setAtsFeedback(null);
+      setMismatchReason(null);
       setMatchStep(0);
     }
   };
@@ -203,8 +206,8 @@ const LaunchView = ({
               </button>
             )}
 
-            {/* Step indicator */}
-            {matchStep >= 1 && (
+            {/* Step indicator — hidden for poor matches */}
+            {matchStep >= 1 && !(matchStep === 1 && atsScore < 50) && (
               <div className="flex items-center justify-center gap-1.5 mb-4">
                 {[1, 2, 3].map((s) => (
                   <div key={s} className="flex items-center gap-1.5">
@@ -233,62 +236,106 @@ const LaunchView = ({
             {/* Step 1: Score Result */}
             {matchStep === 1 && atsScore !== null && (
               <div>
-                <div className="p-3 px-3.5 rounded-[10px] bg-warm-bg border border-warm-border mb-3.5">
-                  <div className="flex items-center gap-1.5 mb-2">
-                    <span className="text-xs">🤖</span>
-                    <span className="text-[10px] font-bold text-stone-500">
-                      ATS Score for this job:
-                    </span>
-                  </div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-stone-500">
-                      Current match
-                    </span>
-                    <span
-                      className="text-[11px] font-mono font-semibold"
-                      style={{ color: getScoreColor(atsScore) }}
-                    >
-                      {atsScore}%
-                    </span>
-                  </div>
-                  <div className="h-1 rounded bg-slate-100 overflow-hidden mb-2">
-                    <div
-                      className="h-full rounded transition-[width] duration-500"
-                      style={{
-                        width: `${atsScore}%`,
-                        backgroundColor: getScoreColor(atsScore),
-                      }}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center mb-1">
-                    <span className="text-[10px] text-stone-500">
-                      After tailoring
-                    </span>
-                    <span className="text-[11px] font-mono text-green-600 font-semibold">
-                      ~{afterScore}%
-                    </span>
-                  </div>
-                  <div className="h-1 rounded bg-slate-100 overflow-hidden">
-                    <div
-                      className="h-full bg-green-600 rounded transition-[width] duration-500"
-                      style={{ width: `${afterScore}%` }}
-                    />
-                  </div>
-                  <p className="text-[9px] text-stone-400 mt-2">
-                    {atsScore >= 80
-                      ? "Your resume is a strong match for this role. Tailoring can fine-tune keyword placement."
-                      : atsScore >= 60
-                        ? "Your resume is decent, but this role needs keywords you haven't emphasized. Tailoring will fix that."
-                        : "Significant keyword gaps detected. Tailoring will add missing terms and improve your match rate."}
-                  </p>
-                </div>
+                {atsScore < 50 ? (
+                  /* Poor match — block tailoring */
+                  <div>
+                    <div className="p-3.5 rounded-[10px] bg-red-50 border border-red-200 mb-3.5">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-xs">⚠️</span>
+                        <span className="text-[10px] font-bold text-red-600">
+                          Poor Match — {atsScore}%
+                        </span>
+                      </div>
+                      <div className="h-1.5 rounded bg-red-100 overflow-hidden mb-3">
+                        <div
+                          className="h-full rounded bg-red-500 transition-[width] duration-500"
+                          style={{ width: `${atsScore}%` }}
+                        />
+                      </div>
+                      {mismatchReason && (
+                        <p className="text-[11px] text-red-700 leading-relaxed mb-2">
+                          {mismatchReason}
+                        </p>
+                      )}
+                      <p className="text-[10px] text-red-500 leading-relaxed">
+                        Tailoring won't be enough to bridge this gap. We recommend revising your resume to better reflect this role before trying again.
+                      </p>
+                    </div>
 
-                <button
-                  onClick={() => setMatchStep(2)}
-                  className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
-                >
-                  See What We Found →
-                </button>
+                    <button
+                      onClick={() => {
+                        setAtsScore(null);
+                        setAtsFeedback(null);
+                        setMismatchReason(null);
+                        setMatchStep(0);
+                        setMode("fix");
+                      }}
+                      className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-[#1a1a1a] text-white shadow-[0_2px_12px_rgba(0,0,0,0.1)]"
+                    >
+                      ← Go Back & Revise Your Resume
+                    </button>
+                  </div>
+                ) : (
+                  /* Decent+ match — continue to findings & tailor */
+                  <div>
+                    <div className="p-3 px-3.5 rounded-[10px] bg-warm-bg border border-warm-border mb-3.5">
+                      <div className="flex items-center gap-1.5 mb-2">
+                        <span className="text-xs">🤖</span>
+                        <span className="text-[10px] font-bold text-stone-500">
+                          ATS Score for this job:
+                        </span>
+                      </div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-stone-500">
+                          Current match
+                        </span>
+                        <span
+                          className="text-[11px] font-mono font-semibold"
+                          style={{ color: getScoreColor(atsScore) }}
+                        >
+                          {atsScore}%
+                        </span>
+                      </div>
+                      <div className="h-1 rounded bg-slate-100 overflow-hidden mb-2">
+                        <div
+                          className="h-full rounded transition-[width] duration-500"
+                          style={{
+                            width: `${atsScore}%`,
+                            backgroundColor: getScoreColor(atsScore),
+                          }}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-[10px] text-stone-500">
+                          After tailoring
+                        </span>
+                        <span className="text-[11px] font-mono text-green-600 font-semibold">
+                          ~{afterScore}%
+                        </span>
+                      </div>
+                      <div className="h-1 rounded bg-slate-100 overflow-hidden">
+                        <div
+                          className="h-full bg-green-600 rounded transition-[width] duration-500"
+                          style={{ width: `${afterScore}%` }}
+                        />
+                      </div>
+                      <p className="text-[9px] text-stone-400 mt-2">
+                        {atsScore >= 80
+                          ? "Your resume is a strong match for this role. Tailoring can fine-tune keyword placement."
+                          : atsScore >= 60
+                            ? "Your resume is decent, but this role needs keywords you haven't emphasized. Tailoring will fix that."
+                            : "Significant keyword gaps detected. Tailoring will add missing terms and improve your match rate."}
+                      </p>
+                    </div>
+
+                    <button
+                      onClick={() => setMatchStep(2)}
+                      className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+                    >
+                      See What We Found →
+                    </button>
+                  </div>
+                )}
               </div>
             )}
 
