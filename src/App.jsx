@@ -13,11 +13,21 @@ import LogView from "./views/LogView";
 import SidebarOverlay from "./views/SidebarOverlay";
 import SettingsPanel from "./views/SettingsPanel";
 
+const STORAGE_KEY = "jobvest_saved_resume";
+
 const App = () => {
+  // Restore saved resume from localStorage on initial load
+  const saved = (() => {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
   const [mode, setMode] = useState("fix");
   const [tab, setTab] = useState("home");
-  const [hasResume, setHasResume] = useState(false);
-  const [resumeFileName, setResumeFileName] = useState("");
+  const [hasResume, setHasResume] = useState(!!saved);
+  const [resumeFileName, setResumeFileName] = useState(saved?.resumeFileName || "");
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileUrl, setResumeFileUrl] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -25,9 +35,10 @@ const App = () => {
   const [quickTailorJD, setQuickTailorJD] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const [resumeScore, setResumeScore] = useState(null);
-  const [resumeFeedback, setResumeFeedback] = useState(null);
+  const [resumeScore, setResumeScore] = useState(saved?.resumeScore ?? null);
+  const [resumeFeedback, setResumeFeedback] = useState(saved?.resumeFeedback ?? null);
   const [analyzing, setAnalyzing] = useState(false);
+  const [savedToProfile, setSavedToProfile] = useState(!!saved);
   const [appStatuses, setAppStatuses] = useState(
     applications.map((a) => a.status)
   );
@@ -38,12 +49,12 @@ const App = () => {
   const [atsFeedback, setAtsFeedback] = useState(null);
 
   // Improve resume state
-  const [resumeText, setResumeText] = useState("");
+  const [resumeText, setResumeText] = useState(saved?.resumeText || "");
   const [improving, setImproving] = useState(false);
   const [improvedResumeUrl, setImprovedResumeUrl] = useState(null);
   const [improvedScore, setImprovedScore] = useState(null);
   const [improvedFeedback, setImprovedFeedback] = useState(null);
-  const [candidateName, setCandidateName] = useState("");
+  const [candidateName, setCandidateName] = useState(saved?.candidateName || "");
 
   // Tailored resume state
   const [tailoredResumeUrl, setTailoredResumeUrl] = useState(null);
@@ -245,7 +256,21 @@ const App = () => {
     }
   };
 
+  const handleSaveResume = () => {
+    const data = {
+      resumeText,
+      resumeFileName,
+      resumeScore,
+      resumeFeedback,
+      candidateName,
+      savedAt: Date.now(),
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    setSavedToProfile(true);
+  };
+
   const handleImportResume = async (file) => {
+    setSavedToProfile(false);
     setResumeFileName(file.name);
     setResumeFile(file);
     setHasResume(true);
@@ -335,6 +360,8 @@ const App = () => {
           onImproveResume={handleImproveResume}
           onUpdateResume={handleImportResume}
           resumeText={resumeText}
+          onSaveResume={handleSaveResume}
+          savedToProfile={savedToProfile}
         />
       )}
       {tab === "home" && hasResume && mode === "launch" && (

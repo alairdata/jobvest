@@ -25,6 +25,8 @@ const FixView = ({
   onUpdateResume,
   resumeText,
   candidateName,
+  onSaveResume,
+  savedToProfile,
 }) => {
   const [showImproved, setShowImproved] = useState(true);
   const isPdf = resumeFileType === "application/pdf";
@@ -189,6 +191,20 @@ const FixView = ({
             >
               Launch Job Search →
             </button>
+
+            {onSaveResume && !analyzing && !improving && (
+              <button
+                onClick={onSaveResume}
+                disabled={savedToProfile || !resumeScore}
+                className={`w-full py-2.5 rounded-[10px] border-[1.5px] text-xs font-semibold cursor-pointer font-sans mt-1.5 transition-colors ${
+                  savedToProfile
+                    ? "border-green-200 bg-green-50 text-green-600 cursor-default"
+                    : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              >
+                {savedToProfile ? "✓ Saved to Profile" : "Save to Profile"}
+              </button>
+            )}
           </div>
 
           <div className="bg-white rounded-2xl p-5 border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)]">

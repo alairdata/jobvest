@@ -1,6 +1,13 @@
 import ATSResultCard from "../components/ATSResultCard";
 
 const SidebarOverlay = ({ sidebarTailor, onClose }) => {
+  const savedResume = (() => {
+    try {
+      const raw = localStorage.getItem("jobvest_saved_resume");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  })();
+
   const keywords = ["Python", "ML", "SQL", "TensorFlow", "AWS", "GCP", "Tableau", "A/B Testing"];
   const tailorSteps = ["Reading JD", "Extracting keywords", "Matching skills", "Rewriting bullets", "Optimizing", "ATS check", "Finalizing"];
   const thresholds = [14, 32, 50, 68, 82, 95, 100];
@@ -115,10 +122,14 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
               <div className="flex-1">
                 <p className="text-xs font-semibold">Master Resume</p>
                 <p className="text-[10px] text-stone-400 mt-0.5 font-mono">
-                  Princilla_Resume_2026.pdf
+                  {savedResume?.resumeFileName || "No resume saved"}
                 </p>
               </div>
-              <div className="w-1.5 h-1.5 rounded-full bg-green-600" />
+              {savedResume ? (
+                <div className="w-1.5 h-1.5 rounded-full bg-green-600" />
+              ) : (
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-300" />
+              )}
             </div>
 
             {/* ATS preview */}
