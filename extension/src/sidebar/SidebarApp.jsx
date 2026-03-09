@@ -4,6 +4,7 @@ import { scoreResume, tailorResume } from "../shared/api";
 import { getResume, saveResume, addApplication } from "../shared/storage";
 import { scrapeJobDescription } from "../content/scrapers/index";
 import { useTailor } from "./hooks/useTailor";
+import { generateResumePdf } from "../shared/generatePdf";
 
 const LOGO_SVG = (
   <svg width="18" height="22" viewBox="0 0 64 78" fill="none">
@@ -239,27 +240,14 @@ const SidebarApp = ({ onClose }) => {
 
   const handleDownload = () => {
     if (!tailoredData) return;
-    let text = `${tailoredData.name || ""}\n${tailoredData.contact || ""}\n\n`;
-    (tailoredData.sections || []).forEach((s) => {
-      text += `${"=".repeat(40)}\n${s.title.toUpperCase()}\n${"=".repeat(40)}\n`;
-      if (s.content) text += `${s.content}\n\n`;
-      if (s.items) {
-        s.items.forEach((it) => {
-          text += `${it.title}\n${it.subtitle || ""}\n`;
-          (it.bullets || []).forEach((b) => { text += `  - ${b}\n`; });
-          text += "\n";
-        });
-      }
-    });
-    const blob = new Blob([text], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
+    const pdfUrl = generateResumePdf(tailoredData);
     const a = document.createElement("a");
-    a.href = url;
+    a.href = pdfUrl;
     const safeName = (tailoredData.name || "Resume").replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_");
     const safeTitle = (jobData?.title || "Role").replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_");
-    a.download = `${safeName}_${safeTitle}.txt`;
+    a.download = `${safeName}_${safeTitle}.pdf`;
     a.click();
-    URL.revokeObjectURL(url);
+    URL.revokeObjectURL(pdfUrl);
   };
 
   // --- Styles ---
