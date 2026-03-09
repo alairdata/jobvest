@@ -10,45 +10,58 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Listen for auth changes — this fires for OAuth redirects too
+    // 1. Register listener FIRST so we catch all auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!mounted) return;
         setUser(session?.user ?? null);
         setLoading(false);
-        // Clean up OAuth tokens from URL
-        if (event === "SIGNED_IN" && (window.location.hash || window.location.search.includes("code="))) {
-          window.history.replaceState({}, "", window.location.pathname);
+
+        // Clean up OAuth tokens from URL after successful sign in
+        if (event === "SIGNED_IN") {
+          const hasTokens = window.location.hash.includes("access_token") ||
+            window.location.search.includes("code=");
+          if (hasTokens) {
+            window.history.replaceState({}, "", window.location.pathname);
+          }
         }
       }
     );
 
-    // Handle OAuth code exchange (PKCE flow)
+    // 2. Handle OAuth redirect: explicitly exchange code if present
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
     if (code) {
-      supabase.auth.exchangeCodeForSession(code).then(({ data, error }) => {
-        if (!mounted) return;
-        if (error) console.error("Code exchange failed:", error);
-        // onAuthStateChange will handle setting the user
+      // PKCE flow: exchange the code for a session
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          console.error("OAuth code exchange failed:", error);
+          setLoading(false);
+        }
+        // Success is handled by onAuthStateChange firing SIGNED_IN
+        window.history.replaceState({}, "", window.location.pathname);
       });
-    } else if (!window.location.hash.includes("access_token")) {
-      // No OAuth redirect — just check existing session
+    } else if (window.location.hash.includes("access_token")) {
+      // Implicit flow: detectSessionInUrl should handle this,
+      // but give it a moment then fall back to getSession
+      setTimeout(() => {
+        supabase.auth.getSession().then(({ data: { session } }) => {
+          if (session) {
+            setUser(session.user);
+            setLoading(false);
+            window.history.replaceState({}, "", window.location.pathname);
+          }
+        });
+      }, 500);
+    } else {
+      // Normal page load: check for existing session
       supabase.auth.getSession().then(({ data: { session } }) => {
-        if (!mounted) return;
         setUser(session?.user ?? null);
         setLoading(false);
       });
     }
-    // If hash has access_token, onAuthStateChange will handle it automatically
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signUp = async (email, password, name) => {
