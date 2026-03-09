@@ -1,20 +1,4 @@
-const Logo = ({ size = 20 }) => (
-  <svg width={size} height={size * 1.22} viewBox="0 0 64 78" fill="none">
-    <defs>
-      <linearGradient id={`jvh-${size}`} x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#60a5fa" />
-        <stop offset="100%" stopColor="#2563eb" />
-      </linearGradient>
-    </defs>
-    <path d="M32 4 L56 14 L56 42 C56 58 44 68 32 74 C20 68 8 58 8 42 L8 14 Z" fill="none" stroke={`url(#jvh-${size})`} strokeWidth="3" />
-    <path d="M32 14 L18 22 L26 26 L32 40 Z" fill="#3b82f6" opacity="0.85" />
-    <path d="M32 14 L46 22 L38 26 L32 40 Z" fill="#60a5fa" opacity="0.85" />
-    <path d="M18 22 L12 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-    <path d="M46 22 L52 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="32" cy="48" r="2" fill="#3b82f6" />
-    <circle cx="32" cy="58" r="2" fill="#3b82f6" />
-  </svg>
-);
+import Logo from "./Logo";
 
 const Header = ({
   tab,
@@ -32,10 +16,8 @@ const Header = ({
 
   return (
     <header className="py-3.5 px-3 sm:px-7 bg-white border-b border-warm-border flex items-center justify-between sticky top-0 z-50">
-      <div className="flex items-center gap-3">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand-navy to-brand-deep flex items-center justify-center shadow-[0_2px_8px_rgba(59,130,246,0.25)]">
-          <Logo size={16} />
-        </div>
+      <div className="flex items-center gap-2">
+        <Logo size={28} />
         <span className="text-[17px] font-bold tracking-tight hidden sm:inline font-heading" style={{ letterSpacing: "-0.5px" }}>
           <span className="text-brand-light">Job</span>
           <span className="text-brand">Vest</span>

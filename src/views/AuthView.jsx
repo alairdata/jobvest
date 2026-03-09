@@ -1,23 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../contexts/AuthContext";
-
-const Logo = ({ size = 64 }) => (
-  <svg width={size} height={size * 1.22} viewBox="0 0 64 78" fill="none">
-    <defs>
-      <linearGradient id="jvlogo" x1="0%" y1="0%" x2="100%" y2="100%">
-        <stop offset="0%" stopColor="#60a5fa" />
-        <stop offset="100%" stopColor="#2563eb" />
-      </linearGradient>
-    </defs>
-    <path d="M32 4 L56 14 L56 42 C56 58 44 68 32 74 C20 68 8 58 8 42 L8 14 Z" fill="none" stroke="url(#jvlogo)" strokeWidth="3" />
-    <path d="M32 14 L18 22 L26 26 L32 40 Z" fill="#3b82f6" opacity="0.85" />
-    <path d="M32 14 L46 22 L38 26 L32 40 Z" fill="#60a5fa" opacity="0.85" />
-    <path d="M18 22 L12 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-    <path d="M46 22 L52 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
-    <circle cx="32" cy="48" r="2" fill="#3b82f6" />
-    <circle cx="32" cy="58" r="2" fill="#3b82f6" />
-  </svg>
-);
+import Logo from "../components/Logo";
 
 const GoogleIcon = () => (
   <svg width="18" height="18" viewBox="0 0 18 18">
@@ -137,11 +120,7 @@ const AuthView = ({ onSkip }) => {
           opacity: mounted ? 1 : 0, transform: mounted ? "translateY(0)" : "translateY(-10px)",
           transition: "all 0.6s cubic-bezier(0.4,0,0.2,1)",
         }}>
-          <div style={{
-            width: "40px", height: "40px", borderRadius: "10px",
-            background: "linear-gradient(135deg, #1e3a8a, #172554)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-          }}><Logo size={20} /></div>
+          <Logo size={32} />
           <span style={{ fontFamily: "'Sora', sans-serif", fontSize: "20px", fontWeight: 800, letterSpacing: "-0.5px" }}>
             <span style={{ color: "#93c5fd" }}>Job</span><span style={{ color: "#3b82f6" }}>Vest</span>
           </span>
@@ -221,7 +200,7 @@ const AuthView = ({ onSkip }) => {
         }}>
           {/* Mobile logo */}
           <div className="flex md:hidden" style={{ alignItems: "center", gap: "10px", marginBottom: "32px" }}>
-            <Logo size={20} />
+            <Logo size={28} />
             <span style={{ fontFamily: "'Sora', sans-serif", fontSize: "18px", fontWeight: 800 }}>
               <span style={{ color: "#3b82f6" }}>Job</span><span style={{ color: "#1e3a8a" }}>Vest</span>
             </span>
