@@ -9,8 +9,8 @@
 }
 
 @keyframes jv-pulse {
-  0%, 100% { box-shadow: 0 4px 16px rgba(255,140,66,0.4); }
-  50% { box-shadow: 0 4px 24px rgba(255,140,66,0.7), 0 0 0 8px rgba(255,140,66,0.1); }
+  0%, 100% { box-shadow: 0 4px 16px rgba(59,130,246,0.4); }
+  50% { box-shadow: 0 4px 24px rgba(59,130,246,0.6), 0 0 0 8px rgba(59,130,246,0.1); }
 }
 
 #jobvest-widget {

@@ -36,10 +36,10 @@ manifest.background.service_worker = "background.js";
 manifest.content_scripts[0].js = ["content.js"];
 manifest.content_scripts[0].css = ["content.css"];
 manifest.action.default_icon = {
-  "16": "icons/icon16.svg",
-  "32": "icons/icon32.svg",
-  "48": "icons/icon48.svg",
-  "128": "icons/icon128.svg",
+  "16": "icons/icon16.png",
+  "32": "icons/icon32.png",
+  "48": "icons/icon48.png",
+  "128": "icons/icon128.png",
 };
 manifest.icons = { ...manifest.action.default_icon };
 manifest.action.default_popup = "src/popup/popup.html";
