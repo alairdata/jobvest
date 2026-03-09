@@ -464,6 +464,17 @@ const AppContent = () => {
         candidate_name: candidateName,
       }).catch(console.warn);
     }
+
+    // Sync to browser extension (if installed)
+    try {
+      if (chrome?.runtime?.sendMessage) {
+        // Try known extension IDs — the extension listens via onMessageExternal
+        const extData = { resumeText, resumeFileName, resumeScore, resumeFeedback, candidateName, syncDate: Date.now() };
+        chrome.runtime.sendMessage("kphpofikfphenkfheilcnpmphkliepjc", { type: "SYNC_RESUME", data: extData }, () => {
+          if (chrome.runtime.lastError) { /* extension not installed, ignore */ }
+        });
+      }
+    } catch { /* not in Chrome or extension not available */ }
   };
 
   const handleUnsaveResume = () => {

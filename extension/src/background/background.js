@@ -49,7 +49,7 @@ chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   const isJobPage = /linkedin\.com\/jobs|indeed\.com|glassdoor\.com\/(job-listing|Job)/i.test(tab.url);
   if (isJobPage) {
     chrome.action.setBadgeText({ text: "JV", tabId });
-    chrome.action.setBadgeBackgroundColor({ color: "#ff8c42", tabId });
+    chrome.action.setBadgeBackgroundColor({ color: "#3b82f6", tabId });
   } else {
     chrome.action.setBadgeText({ text: "", tabId });
   }
