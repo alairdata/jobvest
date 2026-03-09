@@ -3,8 +3,11 @@
   "name": "JobVest — Your No.1 Job Search Guide",
   "version": "1.0.0",
   "description": "Tailor your resume to any job listing with one click. Beat the bots, impress the humans.",
-  "permissions": ["storage", "activeTab"],
-  "host_permissions": ["https://jobvest.vercel.app/*"],
+  "permissions": ["storage", "activeTab", "identity"],
+  "host_permissions": [
+    "https://jobvest.vercel.app/*",
+    "https://ycuazkcjetvdcxgctlwh.supabase.co/*"
+  ],
   "background": {
     "service_worker": "src/background/background.js",
     "type": "module"

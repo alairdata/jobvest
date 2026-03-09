@@ -1,8 +1,10 @@
-const API_BASE = "https://jobvest.vercel.app/api";
-const STORAGE_KEY_RESUME = "jobvest_resume";
+import { signInWithGoogle, restoreSession, fetchResumeFromSupabase, signOut } from "../shared/auth.js";
 
-// Relay API calls from content script to avoid CORS
+const API_BASE = "https://jobvest.vercel.app/api";
+
+// Handle messages from content script / sidebar
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+  // Relay API calls to avoid CORS
   if (msg.type === "API_CALL") {
     fetch(`${API_BASE}${msg.endpoint}`, {
       method: "POST",
@@ -15,28 +17,47 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
       })
       .then(sendResponse)
       .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
 
-    return true; // keep channel open for async response
+  // Google sign-in via chrome.identity
+  if (msg.type === "SIGN_IN_GOOGLE") {
+    signInWithGoogle()
+      .then(sendResponse)
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  // Restore existing session
+  if (msg.type === "RESTORE_SESSION") {
+    restoreSession()
+      .then((result) => sendResponse(result || { error: "No session" }))
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  // Fetch resume from Supabase
+  if (msg.type === "FETCH_RESUME") {
+    fetchResumeFromSupabase(msg.accessToken, msg.userId)
+      .then((resume) => sendResponse({ resume }))
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  // Sign out
+  if (msg.type === "SIGN_OUT") {
+    signOut()
+      .then(() => sendResponse({ success: true }))
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
   }
 });
 
 // Handle resume sync from main app (externally_connectable)
 chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
   if (msg.type === "SYNC_RESUME") {
-    chrome.storage.local.set({ [STORAGE_KEY_RESUME]: msg.data }, () => {
+    chrome.storage.local.set({ jobvest_resume: msg.data }, () => {
       sendResponse({ success: true });
-    });
-    return true;
-  }
-
-  if (msg.type === "CHECK_RESUME") {
-    chrome.storage.local.get(STORAGE_KEY_RESUME, (result) => {
-      const resume = result[STORAGE_KEY_RESUME];
-      sendResponse({
-        synced: !!resume,
-        name: resume?.resumeFileName || null,
-        date: resume?.syncDate || null,
-      });
     });
     return true;
   }
@@ -45,7 +66,6 @@ chrome.runtime.onMessageExternal.addListener((msg, sender, sendResponse) => {
 // Badge: show "JV" on supported job sites
 chrome.tabs.onUpdated.addListener((tabId, changeInfo, tab) => {
   if (changeInfo.status !== "complete" || !tab.url) return;
-
   const isJobPage = /linkedin\.com\/jobs|indeed\.com|glassdoor\.com\/(job-listing|Job)/i.test(tab.url);
   if (isJobPage) {
     chrome.action.setBadgeText({ text: "JV", tabId });
