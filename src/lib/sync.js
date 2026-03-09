@@ -7,8 +7,8 @@ export const fetchProfile = async (userId) => {
     .from("profiles")
     .select("*")
     .eq("id", userId)
-    .single();
-  if (error && error.code !== "PGRST116") throw error;
+    .maybeSingle();
+  if (error) throw error;
   return data;
 };
 
@@ -26,8 +26,8 @@ export const fetchSettings = async (userId) => {
     .from("user_settings")
     .select("*")
     .eq("id", userId)
-    .single();
-  if (error && error.code !== "PGRST116") throw error;
+    .maybeSingle();
+  if (error) throw error;
   return data;
 };
 
@@ -45,26 +45,19 @@ export const fetchResume = async (userId) => {
     .from("resumes")
     .select("*")
     .eq("user_id", userId)
-    .single();
-  if (error && error.code !== "PGRST116") throw error;
+    .maybeSingle();
+  if (error) throw error;
   return data;
 };
 
 export const upsertResume = async (userId, resumeData) => {
-  // Check if resume exists
-  const existing = await fetchResume(userId);
-  if (existing) {
-    const { error } = await supabase
-      .from("resumes")
-      .update({ ...resumeData, updated_at: new Date().toISOString() })
-      .eq("user_id", userId);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from("resumes")
-      .insert({ user_id: userId, ...resumeData });
-    if (error) throw error;
-  }
+  const { error } = await supabase
+    .from("resumes")
+    .upsert(
+      { user_id: userId, ...resumeData, updated_at: new Date().toISOString() },
+      { onConflict: "user_id" }
+    );
+  if (error) throw error;
 };
 
 export const deleteResume = async (userId) => {
@@ -128,21 +121,18 @@ export const pullAllData = async (userId) => {
 // ── Push localStorage data to Supabase on first sign-in ──
 
 export const pushLocalDataToCloud = async (userId) => {
-  // Push saved resume if exists locally
+  // Push saved resume if exists locally (upsert handles duplicates gracefully)
   try {
     const raw = localStorage.getItem("jobvest_saved_resume");
     if (raw) {
       const saved = JSON.parse(raw);
-      const existing = await fetchResume(userId);
-      if (!existing) {
-        await upsertResume(userId, {
-          resume_text: saved.resumeText || "",
-          file_name: saved.resumeFileName || "",
-          score: saved.resumeScore ?? null,
-          feedback: saved.resumeFeedback ?? null,
-          candidate_name: saved.candidateName || "",
-        });
-      }
+      await upsertResume(userId, {
+        resume_text: saved.resumeText || "",
+        file_name: saved.resumeFileName || "",
+        score: saved.resumeScore ?? null,
+        feedback: saved.resumeFeedback ?? null,
+        candidate_name: saved.candidateName || "",
+      });
     }
   } catch (e) {
     console.warn("Failed to push local resume to cloud:", e);
