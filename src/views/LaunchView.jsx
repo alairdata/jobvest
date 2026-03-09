@@ -16,7 +16,6 @@ const LaunchView = ({
   quickTailor,
   expandedFeedback,
   setExpandedFeedback,
-  onOpenSidebar,
   resumeScore,
   resumeText,
   jdText,
@@ -167,12 +166,9 @@ const LaunchView = ({
                 click — on any job board, any listing.
               </p>
             </div>
-            <button
-              onClick={onOpenSidebar}
-              className="py-2 px-4 rounded-lg border-none whitespace-nowrap bg-[#1a1a1a] text-white text-[11px] font-bold cursor-pointer font-sans"
-            >
-              Try it →
-            </button>
+            <span className="py-1.5 px-3 rounded-lg whitespace-nowrap bg-blue-50 text-brand text-[10px] font-bold border border-blue-200">
+              Coming soon
+            </span>
           </div>
 
           {/* Check Your Job Match */}

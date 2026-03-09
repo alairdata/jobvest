@@ -10,7 +10,6 @@ import OnboardingView from "./views/OnboardingView";
 import FixView from "./views/FixView";
 import LaunchView from "./views/LaunchView";
 import LogView from "./views/LogView";
-import SidebarOverlay from "./views/SidebarOverlay";
 import SettingsPanel from "./views/SettingsPanel";
 import AuthView from "./views/AuthView";
 import * as sync from "./lib/sync";
@@ -62,7 +61,6 @@ const AppContent = () => {
   const [resumeFileName, setResumeFileName] = useState(saved?.resumeFileName || "");
   const [resumeFile, setResumeFile] = useState(null);
   const [resumeFileUrl, setResumeFileUrl] = useState(null);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [expandedFeedback, setExpandedFeedback] = useState(null);
   const [quickTailorJD, setQuickTailorJD] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -246,7 +244,6 @@ const AppContent = () => {
     };
   }, [tailoredResumeUrl]);
 
-  const sidebarTailor = useTailor();
   const quickTailor = useTailor();
 
   const updateStatus = (idx, newStatus) => {
@@ -305,11 +302,6 @@ const AppContent = () => {
         });
       }).catch(console.warn);
     }
-  };
-
-  const handleOpenSidebar = () => {
-    setSidebarOpen(true);
-    sidebarTailor.reset();
   };
 
   const handleImproveResume = async () => {
@@ -638,7 +630,6 @@ const AppContent = () => {
         hasResume={hasResume}
         mode={mode}
         onToggleMode={handleToggleMode}
-        onOpenSidebar={handleOpenSidebar}
         onOpenSettings={() => setSettingsOpen(true)}
         user={user}
         isAuthenticated={isAuthenticated}
@@ -684,7 +675,6 @@ const AppContent = () => {
           quickTailor={quickTailor}
           expandedFeedback={expandedFeedback}
           setExpandedFeedback={setExpandedFeedback}
-          onOpenSidebar={handleOpenSidebar}
           resumeScore={improvedScore ?? resumeScore}
           resumeText={resumeText}
           jdText={jdText}
@@ -710,13 +700,6 @@ const AppContent = () => {
           updateStatus={updateStatus}
           openMenu={openMenu}
           setOpenMenu={setOpenMenu}
-        />
-      )}
-
-      {sidebarOpen && (
-        <SidebarOverlay
-          sidebarTailor={sidebarTailor}
-          onClose={() => setSidebarOpen(false)}
         />
       )}
 

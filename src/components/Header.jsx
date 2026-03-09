@@ -19,7 +19,6 @@ const Logo = ({ size = 20 }) => (
 const Header = ({
   tab,
   setTab,
-  onOpenSidebar,
   onOpenSettings,
   user,
   isAuthenticated,
@@ -63,13 +62,6 @@ const Header = ({
       </div>
 
       <div className="flex gap-2 items-center">
-        <button
-          onClick={onOpenSidebar}
-          className="py-2 px-3 sm:px-4 rounded-[10px] border-none bg-gradient-to-br from-brand to-brand-dark text-white text-xs font-bold cursor-pointer font-sans shadow-[0_2px_10px_rgba(59,130,246,0.25)] flex items-center gap-1.5"
-        >
-          ◎ <span className="hidden sm:inline">Sidebar</span>
-        </button>
-
         <button
           onClick={onOpenSettings}
           className="w-9 h-9 rounded-[10px] border border-stone-200 bg-white flex items-center justify-center cursor-pointer hover:bg-stone-50 transition-colors overflow-hidden"
