@@ -1,47 +1,51 @@
-const LOGO_SVG = `<svg width="24" height="29" viewBox="0 0 64 78" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" stroke-width="3.5" stroke-linejoin="round"/>
-  <path d="M24 20 L32 38 L28 28 L20 24 Z" fill="#fff" opacity="0.85"/>
-  <path d="M40 20 L32 38 L36 28 L44 24 Z" fill="#fff" opacity="0.85"/>
-  <path d="M24 20 L20 16" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-  <path d="M40 20 L44 16" stroke="#93c5fd" stroke-width="2" stroke-linecap="round"/>
-  <circle cx="32" cy="44" r="2.2" fill="#fff"/>
-  <circle cx="32" cy="52" r="2.2" fill="#fff"/>
-  <circle cx="32" cy="60" r="2.2" fill="#fff"/>
+const LOGO_SVG = `<svg width="16" height="20" viewBox="0 0 64 78" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" stroke-width="4" stroke-linejoin="round"/>
+  <path d="M24 20 L32 38 L28 28 L20 24 Z" fill="#fff" opacity="0.9"/>
+  <path d="M40 20 L32 38 L36 28 L44 24 Z" fill="#fff" opacity="0.9"/>
+  <circle cx="32" cy="46" r="2.5" fill="#fff"/>
+  <circle cx="32" cy="55" r="2.5" fill="#fff"/>
 </svg>`;
 
 export const createWidget = (onClick) => {
   const btn = document.createElement("div");
   btn.id = "jobvest-widget";
-  btn.innerHTML = LOGO_SVG;
-  btn.title = "JobVest — Tailor your resume for this job";
+
+  btn.innerHTML = `
+    ${LOGO_SVG}
+    <span style="font-family:'Segoe UI',system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:-0.3px;">
+      <span style="color:#93c5fd;">Job</span><span style="color:#fff;">Vest</span>
+    </span>
+  `;
 
   Object.assign(btn.style, {
     position: "fixed",
-    bottom: "24px",
-    right: "24px",
-    width: "52px",
-    height: "52px",
-    borderRadius: "14px",
-    background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
-    color: "white",
+    bottom: "20px",
+    right: "20px",
+    height: "38px",
+    padding: "0 16px 0 12px",
+    borderRadius: "20px",
+    background: "linear-gradient(135deg, #2563eb, #1d4ed8)",
     display: "flex",
     alignItems: "center",
-    justifyContent: "center",
+    gap: "7px",
     cursor: "pointer",
     zIndex: "2147483646",
-    boxShadow: "0 4px 16px rgba(59,130,246,0.4)",
-    transition: "transform 0.2s, box-shadow 0.2s",
+    boxShadow: "0 2px 12px rgba(37,99,235,0.4)",
+    transition: "transform 0.2s, box-shadow 0.2s, opacity 0.2s",
     userSelect: "none",
+    opacity: "0.92",
   });
 
-  // Hover effect
+  // Hover
   btn.addEventListener("mouseenter", () => {
-    btn.style.transform = "scale(1.1)";
-    btn.style.boxShadow = "0 6px 20px rgba(59,130,246,0.5)";
+    btn.style.transform = "scale(1.05)";
+    btn.style.boxShadow = "0 4px 18px rgba(37,99,235,0.5)";
+    btn.style.opacity = "1";
   });
   btn.addEventListener("mouseleave", () => {
     btn.style.transform = "scale(1)";
-    btn.style.boxShadow = "0 4px 16px rgba(59,130,246,0.4)";
+    btn.style.boxShadow = "0 2px 12px rgba(37,99,235,0.4)";
+    btn.style.opacity = "0.92";
   });
 
   // Draggable
@@ -76,18 +80,6 @@ export const createWidget = (onClick) => {
     document.addEventListener("mousemove", onMove);
     document.addEventListener("mouseup", onUp);
   });
-
-  // Pulse animation
-  const style = document.createElement("style");
-  style.textContent = `
-    @keyframes jv-pulse {
-      0%, 100% { box-shadow: 0 4px 16px rgba(59,130,246,0.4); }
-      50% { box-shadow: 0 4px 24px rgba(59,130,246,0.6), 0 0 0 8px rgba(59,130,246,0.1); }
-    }
-    #jobvest-widget { animation: jv-pulse 2s ease infinite; }
-    #jobvest-widget:hover { animation: none; }
-  `;
-  document.head.appendChild(style);
 
   document.body.appendChild(btn);
   return btn;
