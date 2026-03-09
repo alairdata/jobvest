@@ -32,6 +32,7 @@ const LaunchView = ({
   setAtsJobTitle,
   setAtsCompany,
   applications,
+  onOpenCompanion,
 }) => {
   const [scoring, setScoring] = useState(false);
   // 0 = not scored, 1 = score result, 2 = detailed findings, 3 = tailoring, 4 = done
@@ -166,9 +167,12 @@ const LaunchView = ({
                 click — on any job board, any listing.
               </p>
             </div>
-            <span className="py-1.5 px-3 rounded-lg whitespace-nowrap bg-blue-50 text-brand text-[10px] font-bold border border-blue-200 cursor-pointer">
+            <button
+              onClick={onOpenCompanion}
+              className="py-2 px-4 rounded-lg border-none whitespace-nowrap bg-[#1a1a1a] text-white text-[11px] font-bold cursor-pointer font-sans"
+            >
               Check it out →
-            </span>
+            </button>
           </div>
 
           {/* Check Your Job Match */}

@@ -12,6 +12,7 @@ import LaunchView from "./views/LaunchView";
 import LogView from "./views/LogView";
 import SettingsPanel from "./views/SettingsPanel";
 import AuthView from "./views/AuthView";
+import CompanionPage from "./views/CompanionPage";
 import * as sync from "./lib/sync";
 
 const STORAGE_KEY = "jobvest_saved_resume";
@@ -65,6 +66,7 @@ const AppContent = () => {
   const [quickTailorJD, setQuickTailorJD] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [companionOpen, setCompanionOpen] = useState(false);
   const [resumeScore, setResumeScore] = useState(saved?.resumeScore ?? null);
   const [resumeFeedback, setResumeFeedback] = useState(saved?.resumeFeedback ?? null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -622,6 +624,10 @@ const AppContent = () => {
     );
   }
 
+  if (companionOpen) {
+    return <CompanionPage onBack={() => setCompanionOpen(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] font-sans text-[#1a1a1a]">
       <Header
@@ -675,6 +681,7 @@ const AppContent = () => {
           quickTailor={quickTailor}
           expandedFeedback={expandedFeedback}
           setExpandedFeedback={setExpandedFeedback}
+          onOpenCompanion={() => setCompanionOpen(true)}
           resumeScore={improvedScore ?? resumeScore}
           resumeText={resumeText}
           jdText={jdText}
