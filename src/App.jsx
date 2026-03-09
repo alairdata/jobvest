@@ -707,6 +707,7 @@ const AppContent = () => {
           tailoredAtsScore={tailoredAtsScore}
           onMarkApplied={handleMarkApplied}
           setAtsJobTitle={setAtsJobTitle}
+          atsJobTitle={atsJobTitle}
           setAtsCompany={setAtsCompany}
           applications={userApplications}
         />

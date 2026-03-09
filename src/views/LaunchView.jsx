@@ -30,6 +30,7 @@ const LaunchView = ({
   tailoredAtsScore,
   onMarkApplied,
   setAtsJobTitle,
+  atsJobTitle,
   setAtsCompany,
   applications,
   onOpenCompanion,
@@ -519,9 +520,12 @@ const LaunchView = ({
                       const safeName = tailoredCandidateName
                         ? tailoredCandidateName.replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_")
                         : "";
+                      const safeTitle = atsJobTitle
+                        ? atsJobTitle.replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_")
+                        : "Resume";
                       a.download = safeName
-                        ? `${safeName}_Tailored_Resume.pdf`
-                        : "Tailored_Resume.pdf";
+                        ? `${safeName}_${safeTitle}.pdf`
+                        : `${safeTitle}.pdf`;
                       document.body.appendChild(a);
                       a.click();
                       document.body.removeChild(a);

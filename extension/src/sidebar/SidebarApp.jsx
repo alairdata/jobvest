@@ -255,7 +255,9 @@ const SidebarApp = ({ onClose }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(tailoredData.name || "Resume").replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_")}_Tailored.txt`;
+    const safeName = (tailoredData.name || "Resume").replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_");
+    const safeTitle = (jobData?.title || "Role").replace(/[^a-zA-Z\s]/g, "").trim().replace(/\s+/g, "_");
+    a.download = `${safeName}_${safeTitle}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   };
