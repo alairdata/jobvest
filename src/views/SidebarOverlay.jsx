@@ -77,6 +77,30 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
           </button>
         </div>
 
+        {/* Extension promo banner */}
+        <div className="mx-[18px] mt-3.5 mb-1 p-3 rounded-xl bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100">
+          <div className="flex items-start gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-sm shrink-0 mt-0.5">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              </svg>
+            </div>
+            <div>
+              <p className="text-[11px] font-bold text-brand-navy leading-tight mb-1">
+                This is what you get with the browser extension
+              </p>
+              <p className="text-[10px] text-slate-500 leading-relaxed">
+                No more switching tabs. See a job you like, tailor your resume right there, and hit apply — all without leaving the page.
+              </p>
+            </div>
+          </div>
+          <div className="mt-2.5 flex items-center gap-2">
+            <span className="inline-flex items-center gap-1 py-[3px] px-2 rounded-md bg-white/70 border border-blue-100 text-[9px] font-semibold text-brand-navy">
+              <span className="text-green-500">●</span> Coming soon
+            </span>
+          </div>
+        </div>
+
         {/* Pre-tailor state */}
         {!sidebarTailor.active && !sidebarTailor.done && (
           <div className="p-[18px] flex flex-col gap-3.5 flex-1">
