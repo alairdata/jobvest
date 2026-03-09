@@ -166,8 +166,8 @@ const LaunchView = ({
                 click — on any job board, any listing.
               </p>
             </div>
-            <span className="py-1.5 px-3 rounded-lg whitespace-nowrap bg-blue-50 text-brand text-[10px] font-bold border border-blue-200">
-              Coming soon
+            <span className="py-1.5 px-3 rounded-lg whitespace-nowrap bg-blue-50 text-brand text-[10px] font-bold border border-blue-200 cursor-pointer">
+              Check it out →
             </span>
           </div>
 
