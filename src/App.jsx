@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import { applications as defaultApplications } from "./data/applications";
 import { useTailor } from "./hooks/useTailor";
 import { parseResume } from "./utils/parseResume";
 import { analyzeResume } from "./utils/analyzeResume";
@@ -72,10 +71,8 @@ const AppContent = () => {
   const [resumeFeedback, setResumeFeedback] = useState(saved?.resumeFeedback ?? null);
   const [analyzing, setAnalyzing] = useState(false);
   const [savedToProfile, setSavedToProfile] = useState(!!saved);
-  const [userApplications, setUserApplications] = useState(defaultApplications);
-  const [appStatuses, setAppStatuses] = useState(
-    defaultApplications.map((a) => a.status)
-  );
+  const [userApplications, setUserApplications] = useState([]);
+  const [appStatuses, setAppStatuses] = useState([]);
 
   // ATS scoring state
   const [jdText, setJdText] = useState("");
