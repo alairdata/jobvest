@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
-  "name": "JobVest — ATS Resume Scorer",
+  "name": "JobVest — Your No.1 Job Search Guide",
   "version": "1.0.0",
-  "description": "Score and tailor your resume against any job posting with one click.",
+  "description": "Tailor your resume to any job listing with one click. Beat the bots, impress the humans.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": ["https://jobvest.vercel.app/*"],
   "background": {
