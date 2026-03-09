@@ -15,7 +15,7 @@ const LogView = ({ applications, appStatuses, updateStatus, openMenu, setOpenMen
 
   return (
     <div className="max-w-[900px] mx-auto py-8 px-3 sm:px-6">
-      <h2 className="font-serif text-2xl font-bold mb-1">Application Log</h2>
+      <h2 className="font-heading text-2xl font-bold mb-1">Application Log</h2>
       <p className="text-[13px] text-stone-500 mb-6">
         Track where you've applied and how your tailored resumes scored.
       </p>
@@ -80,7 +80,7 @@ const LogView = ({ applications, appStatuses, updateStatus, openMenu, setOpenMen
               style={{
                 borderBottom:
                   i < applications.length - 1
-                    ? "1px solid #faf8f5"
+                    ? "1px solid #f1f5f9"
                     : "none",
               }}
             >

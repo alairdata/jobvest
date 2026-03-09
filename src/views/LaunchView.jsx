@@ -113,13 +113,13 @@ const LaunchView = ({
   return (
     <div className="max-w-[960px] mx-auto py-8 px-4 sm:px-6">
       {/* Banner */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 px-4 sm:px-6 rounded-2xl mb-6 bg-gradient-to-br from-orange-50 to-[#fef3e2] border border-orange-300 gap-4">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between py-5 px-4 sm:px-6 rounded-2xl mb-6 bg-gradient-to-br from-blue-50 to-blue-100 border border-blue-200 gap-4">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xl shadow-[0_2px_10px_rgba(255,140,66,0.25)]">
+          <div className="w-12 h-12 rounded-[14px] bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xl shadow-[0_2px_10px_rgba(59,130,246,0.25)]">
             ✧
           </div>
           <div>
-            <h1 className="font-serif text-lg sm:text-[22px] font-extrabold mb-0.5">
+            <h1 className="font-heading text-lg sm:text-[22px] font-extrabold mb-0.5">
               Your job search is ready to be launched!
             </h1>
             <p className="text-[13px] text-stone-500">
@@ -154,7 +154,7 @@ const LaunchView = ({
         {/* Left column */}
         <div className="w-full md:flex-[1_1_400px] md:min-w-[320px] flex flex-col gap-5">
           {/* Browser companion */}
-          <div className="py-4 px-4 sm:px-5 rounded-[14px] bg-gradient-to-br from-warm-bg to-orange-50 border border-orange-300 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
+          <div className="py-4 px-4 sm:px-5 rounded-[14px] bg-gradient-to-br from-warm-bg to-blue-50 border border-blue-200 flex flex-col sm:flex-row items-start sm:items-center gap-3.5">
             <div className="w-[38px] h-[38px] rounded-[10px] shrink-0 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-base">
               ◎
             </div>
@@ -179,7 +179,7 @@ const LaunchView = ({
           <div className="p-6 rounded-2xl bg-white border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)]">
             <div className="flex justify-between items-start mb-1.5">
               <div>
-                <h3 className="font-serif text-[17px] font-bold mb-[3px]">
+                <h3 className="font-heading text-[17px] font-bold mb-[3px]">
                   Check Your Job Match
                 </h3>
                 <p className="text-xs text-stone-500">
@@ -210,7 +210,7 @@ const LaunchView = ({
               <button
                 onClick={handleScoreMatch}
                 disabled={scoring || !resumeText}
-                className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)] mb-3.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)] mb-3.5 disabled:opacity-60 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {scoring ? (
                   <>
@@ -234,7 +234,7 @@ const LaunchView = ({
                       }}
                       className={`w-6 h-6 rounded-full text-[10px] font-bold flex items-center justify-center border-none cursor-pointer font-sans transition-all ${
                         s === matchStep || (s === 3 && matchStep >= 3)
-                          ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_1px_4px_rgba(255,140,66,0.3)]"
+                          ? "bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_1px_4px_rgba(59,130,246,0.3)]"
                           : s < matchStep || matchStep >= 3
                             ? "bg-green-100 text-green-600"
                             : "bg-stone-100 text-stone-400"
@@ -403,7 +403,7 @@ const LaunchView = ({
                     <button
                       onClick={() => setMatchStep(2)}
                       disabled={afterScore === null}
-                      className={`w-full py-[13px] rounded-xl border-none text-sm font-bold font-sans shadow-[0_2px_12px_rgba(255,140,66,0.2)] ${
+                      className={`w-full py-[13px] rounded-xl border-none text-sm font-bold font-sans shadow-[0_2px_12px_rgba(59,130,246,0.2)] ${
                         afterScore === null
                           ? "opacity-50 cursor-not-allowed bg-stone-300 text-stone-500"
                           : "cursor-pointer bg-gradient-to-br from-brand to-brand-dark text-white"
@@ -460,7 +460,7 @@ const LaunchView = ({
                       }
                     }
                   }}
-                  className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+                  className="w-full py-[13px] rounded-xl border-none cursor-pointer text-sm font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)]"
                 >
                   ✧ Tailor Now
                 </button>
@@ -527,7 +527,7 @@ const LaunchView = ({
                       document.body.removeChild(a);
                     }}
                     disabled={!tailoredResumeUrl}
-                    className="flex-1 py-3 rounded-[10px] border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_10px_rgba(255,140,66,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 py-3 rounded-[10px] border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_10px_rgba(59,130,246,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     ↓ Download PDF
                   </button>
@@ -552,7 +552,7 @@ const LaunchView = ({
           {/* Recent Activity */}
           <div className="py-5 px-6 rounded-2xl bg-white border border-warm-border shadow-[0_1px_3px_rgba(0,0,0,0.04),0_8px_20px_rgba(0,0,0,0.02)]">
             <div className="flex justify-between items-center mb-3.5">
-              <h3 className="font-serif text-[15px] font-bold">
+              <h3 className="font-heading text-[15px] font-bold">
                 Recent Activity
               </h3>
               <button
@@ -595,7 +595,7 @@ const LaunchView = ({
             <div className="flex justify-center mb-1.5">
               <ScoreTypeBadge type="ats" />
             </div>
-            <h3 className="font-serif text-[15px] font-bold mb-1">
+            <h3 className="font-heading text-[15px] font-bold mb-1">
               ATS Score
             </h3>
             <p className="text-[10px] text-stone-400">
@@ -615,7 +615,7 @@ const LaunchView = ({
               </>
             ) : (
               <div className="mx-auto mt-6 mb-4 text-center">
-                <span className="text-5xl font-extrabold font-serif text-stone-200">—</span>
+                <span className="text-5xl font-extrabold font-heading text-stone-200">—</span>
                 <p className="text-[11px] font-bold mt-1 tracking-[1.5px] font-mono text-stone-300">
                   NOT SCORED
                 </p>

@@ -1,0 +1,21 @@
+/* JobVest extension content styles */
+#jobvest-sidebar-root {
+  all: initial;
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 2147483647;
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+@keyframes jv-pulse {
+  0%, 100% { box-shadow: 0 4px 16px rgba(255,140,66,0.4); }
+  50% { box-shadow: 0 4px 24px rgba(255,140,66,0.7), 0 0 0 8px rgba(255,140,66,0.1); }
+}
+
+#jobvest-widget {
+  animation: jv-pulse 2s ease infinite;
+}
+#jobvest-widget:hover {
+  animation: none;
+}

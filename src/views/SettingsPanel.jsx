@@ -72,7 +72,7 @@ const SettingsPanel = ({
       <div className="relative w-full max-w-none sm:max-w-[420px] bg-white shadow-[-4px_0_24px_rgba(0,0,0,0.08)] flex flex-col overflow-auto z-10">
         {/* Header */}
         <div className="flex items-center justify-between py-5 px-4 sm:px-6 border-b border-warm-border">
-          <h2 className="font-serif text-xl font-bold">Settings</h2>
+          <h2 className="font-heading text-xl font-bold">Settings</h2>
           <button
             onClick={onClose}
             className="w-8 h-8 rounded-lg border-none bg-transparent cursor-pointer text-stone-400 text-lg flex items-center justify-center hover:bg-stone-100 transition-colors"
@@ -220,7 +220,7 @@ const SettingsPanel = ({
 
             <button
               onClick={() => setToast("Coming soon!")}
-              className="w-full py-3.5 rounded-xl border-none cursor-pointer text-[14px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+              className="w-full py-3.5 rounded-xl border-none cursor-pointer text-[14px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)]"
             >
               Upgrade to Pro — $9/mo
             </button>

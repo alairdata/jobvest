@@ -30,7 +30,7 @@ const StatusMenu = ({ currentStatus, isOpen, onToggle, onSelect }) => {
                   e.stopPropagation();
                   onSelect(s.key);
                 }}
-                className="flex items-center gap-2 w-full py-2 px-2.5 border-none rounded-lg cursor-pointer text-left transition-colors hover:bg-[#fafaf8]"
+                className="flex items-center gap-2 w-full py-2 px-2.5 border-none rounded-lg cursor-pointer text-left transition-colors hover:bg-[#f8fafc]"
                 style={{
                   background: currentStatus === s.key ? s.bg : "transparent",
                 }}

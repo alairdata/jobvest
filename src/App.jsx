@@ -604,9 +604,9 @@ const AppContent = () => {
   // Show auth screen if not authenticated and not in guest mode
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-lg font-bold animate-pulse">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-navy to-brand-deep flex items-center justify-center text-white text-lg font-bold animate-pulse">
             ✧
           </div>
           <p className="text-sm text-stone-400">Loading...</p>
@@ -622,9 +622,9 @@ const AppContent = () => {
   // Show loading overlay while syncing cloud data
   if (isAuthenticated && cloudLoading) {
     return (
-      <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center">
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-lg font-bold animate-pulse">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-navy to-brand-deep flex items-center justify-center text-white text-lg font-bold animate-pulse">
             ✧
           </div>
           <p className="text-sm text-stone-400">Syncing your data...</p>
@@ -634,7 +634,7 @@ const AppContent = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf8] font-sans text-[#1a1a1a]">
+    <div className="min-h-screen bg-[#f8fafc] font-sans text-[#1a1a1a]">
       <Header
         tab={tab}
         setTab={setTab}

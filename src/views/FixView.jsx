@@ -64,7 +64,7 @@ const FixView = ({
       )}
 
       <div className="text-center mb-8">
-        <h1 className="font-serif text-[28px] font-extrabold mb-1.5 text-[#1a1a1a]">
+        <h1 className="font-heading text-[28px] font-extrabold mb-1.5 text-[#1a1a1a]">
           Great job! Let's take a closer look <span className="text-brand">✦</span>
         </h1>
         <p className="text-sm text-stone-500">
@@ -156,7 +156,7 @@ const FixView = ({
             <div className="flex justify-center mb-2.5">
               <ScoreTypeBadge type="strength" />
             </div>
-            <h3 className="font-serif text-[17px] font-bold mb-1">
+            <h3 className="font-heading text-[17px] font-bold mb-1">
               Resume Strength Score
             </h3>
             <p className="text-[11px] text-stone-400">
@@ -192,7 +192,7 @@ const FixView = ({
               <button
                 onClick={onImproveResume}
                 disabled={improving || analyzing || !isPdf || !resumeText}
-                className="flex-1 py-3 px-2 rounded-[10px] border-none bg-gradient-to-br from-brand to-brand-dark text-white text-xs font-bold cursor-pointer font-sans shadow-[0_2px_10px_rgba(255,140,66,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-3 px-2 rounded-[10px] border-none bg-gradient-to-br from-brand to-brand-dark text-white text-xs font-bold cursor-pointer font-sans shadow-[0_2px_10px_rgba(59,130,246,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {improving ? "Improving..." : hasImproved ? "Improve Again" : "Improve Resume"}
               </button>
@@ -206,7 +206,7 @@ const FixView = ({
 
             <button
               onClick={() => setMode("launch")}
-              className="w-full py-3 rounded-[10px] border-none bg-[rgba(255,140,66,0.06)] text-orange-600 text-[13px] font-bold cursor-pointer font-sans mt-2.5 transition-colors hover:bg-[rgba(255,140,66,0.12)]"
+              className="w-full py-3 rounded-[10px] border-none bg-blue-50 text-blue-600 text-[13px] font-bold cursor-pointer font-sans mt-2.5 transition-colors hover:bg-blue-100"
             >
               Launch Job Search →
             </button>

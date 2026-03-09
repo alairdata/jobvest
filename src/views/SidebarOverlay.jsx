@@ -62,7 +62,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
         {/* Sidebar header */}
         <div className="py-3.5 px-[18px] border-b border-warm-border flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-[26px] h-[26px] rounded-[7px] bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xs shadow-[0_2px_8px_rgba(255,140,66,0.25)]">
+            <div className="w-[26px] h-[26px] rounded-[7px] bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xs shadow-[0_2px_8px_rgba(59,130,246,0.25)]">
               ✧
             </div>
             <span className="text-sm font-bold">
@@ -108,7 +108,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
                 {keywords.map((kw) => (
                   <span
                     key={kw}
-                    className="py-0.5 px-2 rounded-[10px] text-[9px] font-semibold bg-orange-50 text-orange-600 border border-orange-300"
+                    className="py-0.5 px-2 rounded-[10px] text-[9px] font-semibold bg-blue-50 text-blue-600 border border-blue-200"
                   >
                     {kw}
                   </span>
@@ -171,7 +171,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
             <div className="mt-auto">
               <button
                 onClick={sidebarTailor.start}
-                className="w-full py-3.5 rounded-xl border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.25)]"
+                className="w-full py-3.5 rounded-xl border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.25)]"
               >
                 ✧ Tailor Resume for This Role
               </button>
@@ -188,7 +188,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
             <div className="w-[42px] h-[42px] rounded-xl mb-4 bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-lg text-white animate-[sbp_2s_ease_infinite]">
               ✧
             </div>
-            <h3 className="font-serif text-[15px] font-bold mb-[3px]">
+            <h3 className="font-heading text-[15px] font-bold mb-[3px]">
               Tailoring...
             </h3>
             <p className="text-[11px] text-stone-400 mb-5">
@@ -235,7 +235,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
             <div className="w-[42px] h-[42px] rounded-xl mb-3.5 bg-green-50 flex items-center justify-center text-xl text-green-600">
               ✓
             </div>
-            <h3 className="font-serif text-base font-bold mb-[3px]">
+            <h3 className="font-heading text-base font-bold mb-[3px]">
               Resume Ready!
             </h3>
             <p className="text-[11px] text-stone-500 mb-4">
@@ -256,7 +256,7 @@ const SidebarOverlay = ({ sidebarTailor, onClose }) => {
               ))}
             </div>
             <div className="w-full flex flex-col gap-1.5 mt-auto">
-              <button className="w-full py-[13px] rounded-xl border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]">
+              <button className="w-full py-[13px] rounded-xl border-none cursor-pointer text-[13px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)]">
                 ↓ Download .docx
               </button>
               <button className="w-full py-[11px] rounded-xl border border-stone-200 cursor-pointer text-xs font-semibold font-sans bg-white text-stone-600">

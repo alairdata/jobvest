@@ -1,6 +1,24 @@
 import { useState } from "react";
 import { useAuth } from "../contexts/AuthContext";
 
+const Logo = ({ size = 48 }) => (
+  <svg width={size} height={size * 1.22} viewBox="0 0 64 78" fill="none">
+    <defs>
+      <linearGradient id="jva" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stopColor="#60a5fa" />
+        <stop offset="100%" stopColor="#2563eb" />
+      </linearGradient>
+    </defs>
+    <path d="M32 4 L56 14 L56 42 C56 58 44 68 32 74 C20 68 8 58 8 42 L8 14 Z" fill="none" stroke="url(#jva)" strokeWidth="3" />
+    <path d="M32 14 L18 22 L26 26 L32 40 Z" fill="#3b82f6" opacity="0.85" />
+    <path d="M32 14 L46 22 L38 26 L32 40 Z" fill="#60a5fa" opacity="0.85" />
+    <path d="M18 22 L12 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
+    <path d="M46 22 L52 16" stroke="#93c5fd" strokeWidth="2" strokeLinecap="round" />
+    <circle cx="32" cy="48" r="2" fill="#3b82f6" />
+    <circle cx="32" cy="58" r="2" fill="#3b82f6" />
+  </svg>
+);
+
 const AuthView = ({ onSkip }) => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
@@ -45,12 +63,12 @@ const AuthView = ({ onSkip }) => {
 
   if (checkEmail) {
     return (
-      <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center px-4">
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center px-4">
         <div className="w-full max-w-[400px] text-center">
           <div className="w-16 h-16 mx-auto mb-6 rounded-2xl bg-green-50 flex items-center justify-center text-3xl">
             ✓
           </div>
-          <h1 className="font-serif text-2xl font-extrabold mb-3 text-[#1a1a1a]">
+          <h1 className="font-heading text-2xl font-extrabold mb-3 text-[#1a1a1a]">
             Check your email
           </h1>
           <p className="text-[14px] text-stone-500 leading-relaxed mb-6">
@@ -72,14 +90,14 @@ const AuthView = ({ onSkip }) => {
   }
 
   return (
-    <div className="min-h-screen bg-[#fafaf8] flex items-center justify-center px-4">
+    <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center px-4">
       <div className="w-full max-w-[400px]">
         {/* Logo */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 mx-auto mb-4 rounded-xl bg-gradient-to-br from-brand to-brand-dark flex items-center justify-center text-white text-xl font-bold shadow-[0_2px_12px_rgba(255,140,66,0.25)]">
-            ✧
+          <div className="mx-auto mb-4 w-fit">
+            <Logo size={48} />
           </div>
-          <h1 className="font-serif text-[28px] font-extrabold text-[#1a1a1a]">
+          <h1 className="font-heading text-[28px] font-extrabold text-[#1a1a1a]">
             {isSignUp ? "Create your account" : "Welcome back"}
           </h1>
           <p className="text-[14px] text-stone-500 mt-1.5">
@@ -153,7 +171,7 @@ const AuthView = ({ onSkip }) => {
               className={`w-full py-3.5 rounded-xl border-none text-[14px] font-bold cursor-pointer font-sans transition-all ${
                 loading
                   ? "bg-stone-200 text-stone-400 cursor-not-allowed"
-                  : "bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(255,140,66,0.2)]"
+                  : "bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)]"
               }`}
             >
               {loading

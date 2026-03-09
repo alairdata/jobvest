@@ -5,13 +5,13 @@ const OnboardingView = ({ onImport }) => {
   const steps = [
     { icon: "📄", bg: "bg-blue-50", title: "Step 1", desc: "Import your resume" },
     { icon: "✏️", bg: "bg-violet-50", title: "Step 2", desc: "Get your Resume Strength Score and feedback on what to improve" },
-    { icon: "🚀", bg: "bg-orange-50", title: "Step 3", desc: "Launch your job search with ATS-optimized, tailored resumes" },
+    { icon: "🚀", bg: "bg-blue-50", title: "Step 3", desc: "Launch your job search with ATS-optimized, tailored resumes" },
   ];
 
   return (
     <div className="max-w-[860px] mx-auto py-8 sm:py-15 px-4 sm:px-6 text-center select-none cursor-default">
       <div className="w-[200px] h-20 mx-auto -mt-[30px] bg-[radial-gradient(ellipse,rgba(255,200,120,0.25)_0%,transparent_70%)] pointer-events-none select-none" aria-hidden="true" />
-      <h1 className="font-serif text-2xl sm:text-[34px] font-extrabold mb-6 sm:mb-10 text-[#1a1a1a]">
+      <h1 className="font-heading text-2xl sm:text-[34px] font-extrabold mb-6 sm:mb-10 text-[#1a1a1a]">
         Here's how it works
       </h1>
 
@@ -24,7 +24,7 @@ const OnboardingView = ({ onImport }) => {
               >
                 {s.icon}
               </div>
-              <p className="font-serif text-lg font-extrabold mb-1.5">
+              <p className="font-heading text-lg font-extrabold mb-1.5">
                 {s.title}
               </p>
               <p className="text-[13px] text-stone-500 leading-relaxed">
@@ -55,7 +55,7 @@ const OnboardingView = ({ onImport }) => {
       />
       <button
         onClick={() => fileInputRef.current.click()}
-        className="py-3.5 sm:py-[18px] px-8 sm:px-12 rounded-[40px] border-none cursor-pointer text-sm sm:text-base font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_4px_20px_rgba(255,140,66,0.3),0_2px_8px_rgba(0,0,0,0.08)]"
+        className="py-3.5 sm:py-[18px] px-8 sm:px-12 rounded-[40px] border-none cursor-pointer text-sm sm:text-base font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_4px_20px_rgba(59,130,246,0.3),0_2px_8px_rgba(0,0,0,0.08)]"
       >
         Import my resume
       </button>
