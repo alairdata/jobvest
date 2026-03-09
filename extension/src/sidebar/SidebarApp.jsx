@@ -4,9 +4,6 @@ import { scoreResume, tailorResume } from "../shared/api";
 import { getResume, saveResume, addApplication } from "../shared/storage";
 import { scrapeJobDescription } from "../content/scrapers/index";
 import { useTailor } from "./hooks/useTailor";
-import ScoreGauge from "./components/ScoreGauge";
-import ATSResultCard from "./components/ATSResultCard";
-import FeedbackItem from "./components/FeedbackItem";
 
 const LOGO_SVG = (
   <svg width="18" height="22" viewBox="0 0 64 78" fill="none">
@@ -32,13 +29,12 @@ const STATES = {
   LOADING: "LOADING",
   NOT_SIGNED_IN: "NOT_SIGNED_IN",
   SIGNING_IN: "SIGNING_IN",
+  FORGOT_PASSWORD: "FORGOT_PASSWORD",
   NO_RESUME: "NO_RESUME",
   SCRAPING: "SCRAPING",
   SCRAPE_FAIL: "SCRAPE_FAIL",
   SCORING: "SCORING",
-  RESULT_LOW: "RESULT_LOW",
-  RESULT_MID: "RESULT_MID",
-  RESULT_HIGH: "RESULT_HIGH",
+  RESULT: "RESULT",
   TAILORING: "TAILORING",
   TAILOR_DONE: "TAILOR_DONE",
 };
@@ -58,16 +54,20 @@ const SidebarApp = ({ onClose }) => {
   const [missedKeywords, setMissedKeywords] = useState([]);
   const [afterScore, setAfterScore] = useState(null);
   const [tailoredData, setTailoredData] = useState(null);
-  const [expandedFeedback, setExpandedFeedback] = useState(null);
   const [markedApplied, setMarkedApplied] = useState(false);
   const [error, setError] = useState(null);
 
+  // Sign-in form state
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [resetEmail, setResetEmail] = useState("");
+  const [resetSent, setResetSent] = useState(false);
+
   const tailor = useTailor();
 
-  // On mount: check auth → fetch resume → scrape
+  // On mount: check auth -> fetch resume -> scrape
   useEffect(() => {
     (async () => {
-      // 1. Try to restore session
       const sessionResult = await chrome.runtime.sendMessage({ type: "RESTORE_SESSION" });
 
       if (!sessionResult || sessionResult.error || !sessionResult.user) {
@@ -76,35 +76,37 @@ const SidebarApp = ({ onClose }) => {
       }
 
       setUser(sessionResult.user);
-
-      // 2. Fetch resume from Supabase
-      const resumeResult = await chrome.runtime.sendMessage({
-        type: "FETCH_RESUME",
-        accessToken: sessionResult.session.access_token,
-        userId: sessionResult.user.id,
-      });
-
-      if (!resumeResult || resumeResult.error || !resumeResult.resume) {
-        setState(STATES.NO_RESUME);
-        return;
-      }
-
-      // 3. Cache locally and proceed
-      await saveResume(resumeResult.resume);
-      setResume(resumeResult.resume);
-
-      // 4. Scrape job page
-      const scraped = scrapeJobDescription();
-      if (scraped.success) {
-        setJobData(scraped);
-        doScore(resumeResult.resume.resumeText, scraped.description, scraped);
-      } else {
-        setState(STATES.SCRAPE_FAIL);
-      }
+      await afterSignIn(sessionResult.session, sessionResult.user);
     })();
   }, []);
 
-  const handleSignIn = async () => {
+  const afterSignIn = async (session, signedInUser) => {
+    // Fetch resume from Supabase
+    const resumeResult = await chrome.runtime.sendMessage({
+      type: "FETCH_RESUME",
+      accessToken: session.access_token,
+      userId: signedInUser.id,
+    });
+
+    if (!resumeResult || resumeResult.error || !resumeResult.resume) {
+      setState(STATES.NO_RESUME);
+      return;
+    }
+
+    await saveResume(resumeResult.resume);
+    setResume(resumeResult.resume);
+
+    // Scrape job page
+    const scraped = scrapeJobDescription();
+    if (scraped.success) {
+      setJobData(scraped);
+      doScore(resumeResult.resume.resumeText, scraped.description, scraped);
+    } else {
+      setState(STATES.SCRAPE_FAIL);
+    }
+  };
+
+  const handleSignInGoogle = async () => {
     setState(STATES.SIGNING_IN);
     setError(null);
 
@@ -117,28 +119,43 @@ const SidebarApp = ({ onClose }) => {
     }
 
     setUser(result.user);
+    await afterSignIn(result.session, result.user);
+  };
 
-    // Fetch resume
-    const resumeResult = await chrome.runtime.sendMessage({
-      type: "FETCH_RESUME",
-      accessToken: result.session.access_token,
-      userId: result.user.id,
+  const handleSignInEmail = async () => {
+    if (!email.trim() || !password.trim()) return;
+    setState(STATES.SIGNING_IN);
+    setError(null);
+
+    const result = await chrome.runtime.sendMessage({
+      type: "SIGN_IN_EMAIL",
+      email: email.trim(),
+      password,
     });
 
-    if (!resumeResult || resumeResult.error || !resumeResult.resume) {
-      setState(STATES.NO_RESUME);
+    if (result.error) {
+      setError(result.error);
+      setState(STATES.NOT_SIGNED_IN);
       return;
     }
 
-    await saveResume(resumeResult.resume);
-    setResume(resumeResult.resume);
+    setUser(result.user);
+    await afterSignIn(result.session, result.user);
+  };
 
-    const scraped = scrapeJobDescription();
-    if (scraped.success) {
-      setJobData(scraped);
-      doScore(resumeResult.resume.resumeText, scraped.description, scraped);
+  const handleResetPassword = async () => {
+    if (!resetEmail.trim()) return;
+    setError(null);
+
+    const result = await chrome.runtime.sendMessage({
+      type: "RESET_PASSWORD",
+      email: resetEmail.trim(),
+    });
+
+    if (result.error) {
+      setError(result.error);
     } else {
-      setState(STATES.SCRAPE_FAIL);
+      setResetSent(true);
     }
   };
 
@@ -155,9 +172,12 @@ const SidebarApp = ({ onClose }) => {
 
       if (jd && data.jobTitle) setJobData((prev) => ({ ...prev, title: data.jobTitle, company: data.company || prev?.company }));
 
-      if (data.score < 50) setState(STATES.RESULT_LOW);
-      else if (data.score >= 85) setState(STATES.RESULT_HIGH);
-      else setState(STATES.RESULT_MID);
+      // Estimate after-tailoring score
+      if (data.score < 85) {
+        setAfterScore(Math.min(data.score + 18, 92));
+      }
+
+      setState(STATES.RESULT);
     } catch (err) {
       setError(err.message || "Scoring failed");
       setState(STATES.SCRAPE_FAIL);
@@ -195,7 +215,7 @@ const SidebarApp = ({ onClose }) => {
       }
     } catch (err) {
       setError(err.message || "Tailoring failed");
-      setState(STATES.RESULT_MID);
+      setState(STATES.RESULT);
       tailor.reset();
     }
   };
@@ -242,7 +262,7 @@ const SidebarApp = ({ onClose }) => {
 
   // --- Styles ---
   const s = {
-    panel: { width: "360px", height: "100vh", position: "fixed", top: 0, right: 0, background: "white", borderLeft: "1px solid #e2e8f0", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: "14px", color: "#1a1a1a", zIndex: 2147483647, boxShadow: "-4px 0 24px rgba(0,0,0,0.06)" },
+    panel: { width: "380px", height: "100vh", position: "fixed", top: 0, right: 0, background: "#fff", borderLeft: "1px solid #e2e8f0", display: "flex", flexDirection: "column", fontFamily: "'DM Sans', system-ui, sans-serif", fontSize: "14px", color: "#1a1a1a", zIndex: 2147483647, boxShadow: "-4px 0 24px rgba(0,0,0,0.06)" },
     header: { padding: "14px 18px", borderBottom: "1px solid #e2e8f0", display: "flex", alignItems: "center", justifyContent: "space-between" },
     logo: { display: "flex", alignItems: "center", gap: "8px" },
     closeBtn: { background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "18px", padding: "4px" },
@@ -250,6 +270,7 @@ const SidebarApp = ({ onClose }) => {
     card: { padding: "14px", borderRadius: "12px", background: "#f8fafc", border: "1px solid #e2e8f0" },
     btn: { width: "100%", padding: "14px", borderRadius: "12px", border: "none", cursor: "pointer", fontSize: "13px", fontWeight: 700, fontFamily: "'DM Sans', system-ui, sans-serif", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", color: "white", boxShadow: "0 2px 12px rgba(59,130,246,0.25)" },
     btnSecondary: { width: "100%", padding: "12px", borderRadius: "12px", border: "1px solid #e2e8f0", cursor: "pointer", fontSize: "12px", fontWeight: 600, fontFamily: "'DM Sans', system-ui, sans-serif", background: "white", color: "#64748b" },
+    input: { width: "100%", padding: "12px 14px", borderRadius: "10px", border: "1.5px solid #e2e8f0", fontSize: "13px", fontFamily: "'DM Sans', system-ui, sans-serif", outline: "none", background: "#f8fafc", color: "#0f172a", transition: "border-color 0.2s" },
     spinner: { display: "inline-block", width: "16px", height: "16px", border: "2px solid rgba(59,130,246,0.2)", borderTop: "2px solid #3b82f6", borderRadius: "50%", animation: "jv-spin 0.8s linear infinite" },
   };
 
@@ -278,41 +299,124 @@ const SidebarApp = ({ onClose }) => {
 
         {/* NOT_SIGNED_IN */}
         {state === STATES.NOT_SIGNED_IN && (
-          <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <div style={{ width: "56px", height: "56px", borderRadius: "16px", margin: "0 auto 20px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <svg width="28" height="34" viewBox="0 0 64 78" fill="none">
-                <path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinejoin="round"/>
-                <path d="M24 20 L32 38 L28 28 L20 24 Z" fill="#fff" opacity="0.9"/>
-                <path d="M40 20 L32 38 L36 28 L44 24 Z" fill="#fff" opacity="0.9"/>
-                <circle cx="32" cy="44" r="2.2" fill="#fff"/>
-                <circle cx="32" cy="52" r="2.2" fill="#fff"/>
-                <circle cx="32" cy="60" r="2.2" fill="#fff"/>
-              </svg>
+          <div style={{ padding: "24px 8px" }}>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <div style={{ width: "52px", height: "52px", borderRadius: "14px", margin: "0 auto 16px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <svg width="26" height="32" viewBox="0 0 64 78" fill="none">
+                  <path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinejoin="round"/>
+                  <path d="M24 20 L32 38 L28 28 L20 24 Z" fill="#fff" opacity="0.9"/>
+                  <path d="M40 20 L32 38 L36 28 L44 24 Z" fill="#fff" opacity="0.9"/>
+                  <circle cx="32" cy="44" r="2.2" fill="#fff"/>
+                  <circle cx="32" cy="52" r="2.2" fill="#fff"/>
+                  <circle cx="32" cy="60" r="2.2" fill="#fff"/>
+                </svg>
+              </div>
+              <p style={{ fontSize: "17px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>Welcome to JobVest</p>
+              <p style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>
+                Sign in to access your resume and tailor it for this job.
+              </p>
             </div>
-            <p style={{ fontSize: "17px", fontWeight: 700, marginBottom: "6px", color: "#0f172a" }}>Welcome to JobVest</p>
-            <p style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.6, marginBottom: "28px" }}>
-              Sign in to access your resume and tailor it for this job.
-            </p>
+
+            {/* Email / Password form */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: "14px" }}>
+              <input
+                type="email"
+                placeholder="Email address"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSignInEmail()}
+                style={s.input}
+              />
+              <input
+                type="password"
+                placeholder="Password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && handleSignInEmail()}
+                style={s.input}
+              />
+              <div style={{ textAlign: "right" }}>
+                <span
+                  onClick={() => { setState(STATES.FORGOT_PASSWORD); setError(null); setResetSent(false); setResetEmail(email); }}
+                  style={{ fontSize: "11px", color: "#3b82f6", cursor: "pointer", fontWeight: 600 }}
+                >
+                  Forgot password?
+                </span>
+              </div>
+              <button style={s.btn} onClick={handleSignInEmail}>
+                Sign In
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div style={{ display: "flex", alignItems: "center", gap: "12px", margin: "6px 0" }}>
+              <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
+              <span style={{ fontSize: "10px", color: "#94a3b8", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>or</span>
+              <div style={{ flex: 1, height: "1px", background: "#e2e8f0" }} />
+            </div>
+
+            {/* Google sign-in */}
             <button
               style={{
-                ...s.btn,
+                ...s.btn, marginTop: "6px",
                 display: "flex", alignItems: "center", justifyContent: "center", gap: "10px",
                 background: "#fff", color: "#1e293b", border: "1.5px solid #e2e8f0",
                 boxShadow: "0 1px 3px rgba(0,0,0,0.04)",
               }}
-              onClick={handleSignIn}
+              onClick={handleSignInGoogle}
             >
               <GoogleIcon />
               Continue with Google
             </button>
+
             {error && (
-              <p style={{ fontSize: "11px", color: "#ef4444", marginTop: "12px" }}>{error}</p>
+              <p style={{ fontSize: "11px", color: "#ef4444", marginTop: "12px", textAlign: "center" }}>{error}</p>
             )}
-            <p style={{ fontSize: "10px", color: "#94a3b8", marginTop: "20px", lineHeight: 1.5 }}>
+
+            <p style={{ fontSize: "10px", color: "#94a3b8", marginTop: "20px", lineHeight: 1.5, textAlign: "center" }}>
               Your resume data syncs from your{" "}
               <a href="https://jobvest.vercel.app" target="_blank" rel="noopener noreferrer" style={{ color: "#3b82f6", textDecoration: "none", fontWeight: 600 }}>JobVest</a>
               {" "}account.
             </p>
+          </div>
+        )}
+
+        {/* FORGOT_PASSWORD */}
+        {state === STATES.FORGOT_PASSWORD && (
+          <div style={{ padding: "24px 8px" }}>
+            <div style={{ textAlign: "center", marginBottom: "24px" }}>
+              <p style={{ fontSize: "17px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>Reset Password</p>
+              <p style={{ fontSize: "12px", color: "#64748b", lineHeight: 1.5 }}>
+                {resetSent ? "Check your email for the reset link." : "Enter your email to receive a reset link."}
+              </p>
+            </div>
+
+            {!resetSent && (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <input
+                  type="email"
+                  placeholder="Email address"
+                  value={resetEmail}
+                  onChange={(e) => setResetEmail(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleResetPassword()}
+                  style={s.input}
+                />
+                <button style={s.btn} onClick={handleResetPassword}>
+                  Send Reset Link
+                </button>
+              </div>
+            )}
+
+            {error && (
+              <p style={{ fontSize: "11px", color: "#ef4444", marginTop: "12px", textAlign: "center" }}>{error}</p>
+            )}
+
+            <button
+              style={{ ...s.btnSecondary, marginTop: "14px", border: "none", color: "#3b82f6" }}
+              onClick={() => { setState(STATES.NOT_SIGNED_IN); setError(null); }}
+            >
+              &larr; Back to Sign In
+            </button>
           </div>
         )}
 
@@ -337,17 +441,22 @@ const SidebarApp = ({ onClose }) => {
           </div>
         )}
 
-        {/* SCRAPING */}
-        {state === STATES.SCRAPING && (
-          <div style={{ textAlign: "center", padding: "40px 20px" }}>
-            <div style={s.spinner} />
-            <p style={{ fontSize: "13px", fontWeight: 600, marginTop: "16px" }}>Reading job description...</p>
-          </div>
-        )}
-
         {/* SCRAPE_FAIL */}
         {state === STATES.SCRAPE_FAIL && (
           <div>
+            {/* Resume card still shows */}
+            {resume && (
+              <div style={{ ...s.card, display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "36px", height: "36px", borderRadius: "8px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="16" height="18" viewBox="0 0 16 20" fill="none"><path d="M10 1H3a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6l-5-5z" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 1v5h5M8 10H5M11 14H5M7 7H5" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>Master Resume</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8" }}>{resume.resumeFileName || "resume.pdf"}</p>
+                </div>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22c55e" }} />
+              </div>
+            )}
             <div style={s.card}>
               <p style={{ fontSize: "12px", fontWeight: 700, color: "#64748b", marginBottom: "8px" }}>
                 {error ? `Error: ${error}` : "Couldn't auto-detect the job description"}
@@ -390,118 +499,133 @@ const SidebarApp = ({ onClose }) => {
           </div>
         )}
 
-        {/* RESULT_LOW (< 50) */}
-        {state === STATES.RESULT_LOW && (
-          <div>
+        {/* RESULT — matches the screenshot layout */}
+        {state === STATES.RESULT && (
+          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+            {/* Job Detected card */}
             {jobData?.title && (
               <div style={s.card}>
                 <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-                  <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#dc2626" }} />
-                  <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#dc2626", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>Poor Match</span>
+                  <div style={{ width: "6px", height: "6px", borderRadius: "50%", background: atsScore < 50 ? "#dc2626" : "#16a34a", boxShadow: atsScore >= 50 ? "0 0 6px rgba(22,163,106,0.4)" : "none" }} />
+                  <span style={{ fontSize: "9px", fontFamily: "monospace", color: atsScore < 50 ? "#dc2626" : "#16a34a", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                    {atsScore >= 85 ? "Great Match" : atsScore >= 50 ? "Job Detected" : "Poor Match"}
+                  </span>
                 </div>
-                <p style={{ fontSize: "13px", fontWeight: 700 }}>{jobData.title}</p>
-                {jobData.company && <p style={{ fontSize: "11px", color: "#64748b" }}>{jobData.company}{jobData.location ? ` \u00B7 ${jobData.location}` : ""}</p>}
+                <p style={{ fontSize: "14px", fontWeight: 700, color: "#0f172a" }}>{jobData.title}</p>
+                {jobData.company && <p style={{ fontSize: "11px", color: "#64748b", marginTop: "2px" }}>{jobData.company}{jobData.location ? ` \u00B7 ${jobData.location}` : ""}</p>}
               </div>
             )}
-            <div style={{ padding: "14px", borderRadius: "10px", background: "#fef2f2", border: "1px solid #fecaca" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "8px" }}>
-                <span style={{ fontSize: "10px", fontWeight: 700, color: "#dc2626" }}>Poor Match — {atsScore}%</span>
-              </div>
-              <div style={{ height: "6px", borderRadius: "3px", background: "#fee2e2", overflow: "hidden", marginBottom: "12px" }}>
-                <div style={{ height: "100%", borderRadius: "3px", background: "#ef4444", width: `${atsScore}%`, transition: "width 0.5s" }} />
-              </div>
-              {mismatchReason && <p style={{ fontSize: "11px", color: "#991b1b", lineHeight: 1.6, marginBottom: "8px" }}>{mismatchReason}</p>}
-              <p style={{ fontSize: "10px", color: "#ef4444", lineHeight: 1.6 }}>
-                Tailoring won't bridge this gap. Revise your resume to better reflect this role.
-              </p>
-            </div>
-            {atsFeedback && atsFeedback.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px", marginTop: "12px" }}>
-                {atsFeedback.map((item, i) => (
-                  <FeedbackItem key={i} item={item} isOpen={expandedFeedback === i} onToggle={() => setExpandedFeedback(expandedFeedback === i ? null : i)} />
-                ))}
-              </div>
-            )}
-          </div>
-        )}
 
-        {/* RESULT_MID (50-84) */}
-        {state === STATES.RESULT_MID && (
-          <div>
-            {jobData?.title && (
-              <div style={s.card}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-                  <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#16a34a", boxShadow: "0 0 6px rgba(22,163,106,0.4)" }} />
-                  <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#16a34a", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>Job Detected</span>
-                </div>
-                <p style={{ fontSize: "13px", fontWeight: 700 }}>{jobData.title}</p>
-                {jobData.company && <p style={{ fontSize: "11px", color: "#64748b" }}>{jobData.company}{jobData.location ? ` \u00B7 ${jobData.location}` : ""}</p>}
-              </div>
-            )}
-            <ScoreGauge value={atsScore} type="ats" />
+            {/* Extracted Keywords */}
             {missedKeywords.length > 0 && (
               <div style={s.card}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "8px" }}>
-                  <span style={{ fontSize: "10px", fontWeight: 700, color: "#64748b" }}>Missing Keywords</span>
-                  <span style={{ fontSize: "9px", color: "#94a3b8", fontFamily: "monospace" }}>{missedKeywords.length} found</span>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#334155" }}>Extracted Keywords</span>
+                  <span style={{ fontSize: "10px", color: "#94a3b8", fontFamily: "monospace" }}>{missedKeywords.length} found</span>
                 </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
                   {missedKeywords.map((kw) => (
-                    <span key={kw} style={{ padding: "2px 8px", borderRadius: "10px", fontSize: "9px", fontWeight: 600, background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" }}>
+                    <span key={kw} style={{ padding: "3px 10px", borderRadius: "10px", fontSize: "11px", fontWeight: 600, background: "#eff6ff", color: "#2563eb", border: "1px solid #bfdbfe" }}>
                       {kw}
                     </span>
                   ))}
                 </div>
               </div>
             )}
-            {atsFeedback && atsFeedback.length > 0 && (
-              <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
-                {atsFeedback.map((item, i) => (
-                  <FeedbackItem key={i} item={item} isOpen={expandedFeedback === i} onToggle={() => setExpandedFeedback(expandedFeedback === i ? null : i)} />
-                ))}
-              </div>
-            )}
-            <div style={{ marginTop: "auto" }}>
-              <button style={s.btn} onClick={handleTailor}>Tailor Resume for This Role</button>
-              <p style={{ fontSize: "10px", color: "#94a3b8", textAlign: "center", marginTop: "8px" }}>Takes ~30s</p>
-            </div>
-          </div>
-        )}
 
-        {/* RESULT_HIGH (85+) */}
-        {state === STATES.RESULT_HIGH && (
-          <div>
-            {jobData?.title && (
-              <div style={s.card}>
-                <div style={{ display: "flex", alignItems: "center", gap: "6px", marginBottom: "6px" }}>
-                  <div style={{ width: "5px", height: "5px", borderRadius: "50%", background: "#16a34a", boxShadow: "0 0 6px rgba(22,163,106,0.4)" }} />
-                  <span style={{ fontSize: "9px", fontFamily: "monospace", color: "#16a34a", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.8px" }}>Great Match</span>
+            {/* Master Resume card */}
+            {resume && (
+              <div style={{ ...s.card, display: "flex", alignItems: "center", gap: "12px" }}>
+                <div style={{ width: "40px", height: "40px", borderRadius: "10px", background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                  <svg width="18" height="20" viewBox="0 0 16 20" fill="none"><path d="M10 1H3a2 2 0 00-2 2v14a2 2 0 002 2h10a2 2 0 002-2V6l-5-5z" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/><path d="M10 1v5h5M8 10H5M11 14H5M7 7H5" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
                 </div>
-                <p style={{ fontSize: "13px", fontWeight: 700 }}>{jobData.title}</p>
-                {jobData.company && <p style={{ fontSize: "11px", color: "#64748b" }}>{jobData.company}{jobData.location ? ` \u00B7 ${jobData.location}` : ""}</p>}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a" }}>Master Resume</p>
+                  <p style={{ fontSize: "11px", color: "#94a3b8", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{resume.resumeFileName || "resume.pdf"}</p>
+                </div>
+                <div style={{ width: "8px", height: "8px", borderRadius: "50%", background: "#22c55e", flexShrink: 0 }} />
               </div>
             )}
-            <ScoreGauge value={atsScore} type="ats" />
-            <div style={{ padding: "14px", borderRadius: "10px", background: "#f0fdf4", border: "1px solid #bbf7d0" }}>
-              <span style={{ fontSize: "10px", fontWeight: 700, color: "#15803d" }}>Perfect Fit — {atsScore}%</span>
-              <p style={{ fontSize: "11px", color: "#15803d", lineHeight: 1.6, marginTop: "6px" }}>
-                Your resume already covers the key requirements. No tailoring needed — go ahead and apply!
+
+            {/* ATS Score card */}
+            <div style={s.card}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="14" height="16" viewBox="0 0 64 78" fill="none">
+                    <path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" strokeWidth="5" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#334155" }}>ATS Score for this job</span>
+              </div>
+
+              {/* Current score */}
+              <div style={{ marginBottom: "10px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>Current</span>
+                  <span style={{ fontSize: "13px", fontWeight: 700, color: atsScore >= 85 ? "#16a34a" : atsScore >= 50 ? "#ea580c" : "#dc2626" }}>{atsScore}%</span>
+                </div>
+                <div style={{ height: "6px", borderRadius: "3px", background: "#f1f5f9", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: "3px", background: atsScore >= 85 ? "#22c55e" : atsScore >= 50 ? "#f97316" : "#ef4444", width: `${atsScore}%`, transition: "width 0.8s ease-out" }} />
+                </div>
+              </div>
+
+              {/* After tailoring estimate */}
+              {atsScore < 85 && afterScore && (
+                <div style={{ marginBottom: "10px" }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "5px" }}>
+                    <span style={{ fontSize: "11px", color: "#64748b" }}>After tailoring</span>
+                    <span style={{ fontSize: "13px", fontWeight: 700, color: "#3b82f6" }}>~{afterScore}%</span>
+                  </div>
+                  <div style={{ height: "6px", borderRadius: "3px", background: "#f1f5f9", overflow: "hidden" }}>
+                    <div style={{ height: "100%", borderRadius: "3px", background: "linear-gradient(90deg, #3b82f6, #1d4ed8)", width: `${afterScore}%`, transition: "width 0.8s ease-out" }} />
+                  </div>
+                </div>
+              )}
+
+              <p style={{ fontSize: "10px", color: "#94a3b8", lineHeight: 1.5 }}>
+                {atsScore >= 85
+                  ? "Your resume already covers the key requirements. Go ahead and apply!"
+                  : "Safe zone: 80-85% \u00B7 Above 95% risks looking like spam"}
               </p>
             </div>
-            <button
-              style={{
-                ...s.btn, marginTop: "8px",
-                background: markedApplied ? "#f0fdf4" : "#16a34a",
-                color: markedApplied ? "#15803d" : "white",
-                border: markedApplied ? "1.5px solid #bbf7d0" : "none",
-                boxShadow: markedApplied ? "none" : "0 2px 12px rgba(22,163,74,0.2)",
-                cursor: markedApplied ? "default" : "pointer",
-              }}
-              onClick={!markedApplied ? handleApplied : undefined}
-              disabled={markedApplied}
-            >
-              {markedApplied ? "\u2713 Applied!" : "I applied for this job!"}
-            </button>
+
+            {/* Mismatch reason for low scores */}
+            {atsScore < 50 && mismatchReason && (
+              <div style={{ padding: "12px 14px", borderRadius: "10px", background: "#fef2f2", border: "1px solid #fecaca" }}>
+                <p style={{ fontSize: "11px", color: "#991b1b", lineHeight: 1.6 }}>{mismatchReason}</p>
+              </div>
+            )}
+
+            {/* Action button */}
+            {atsScore >= 85 ? (
+              <button
+                style={{
+                  ...s.btn,
+                  background: markedApplied ? "#f0fdf4" : "#16a34a",
+                  color: markedApplied ? "#15803d" : "white",
+                  border: markedApplied ? "1.5px solid #bbf7d0" : "none",
+                  boxShadow: markedApplied ? "none" : "0 2px 12px rgba(22,163,74,0.2)",
+                  cursor: markedApplied ? "default" : "pointer",
+                }}
+                onClick={!markedApplied ? handleApplied : undefined}
+                disabled={markedApplied}
+              >
+                {markedApplied ? "\u2713 Applied!" : "I applied for this job!"}
+              </button>
+            ) : atsScore >= 50 ? (
+              <div>
+                <button style={s.btn} onClick={handleTailor}>
+                  &#10024; Tailor Resume for This Role
+                </button>
+                <p style={{ fontSize: "10px", color: "#94a3b8", textAlign: "center", marginTop: "6px" }}>Takes ~30s</p>
+              </div>
+            ) : (
+              <div style={{ padding: "12px 14px", borderRadius: "10px", background: "#fef2f2", border: "1px solid #fecaca" }}>
+                <p style={{ fontSize: "10px", color: "#ef4444", lineHeight: 1.6 }}>
+                  Tailoring won't bridge this gap. Revise your resume to better reflect this role.
+                </p>
+              </div>
+            )}
           </div>
         )}
 
@@ -557,7 +681,35 @@ const SidebarApp = ({ onClose }) => {
             <p style={{ fontSize: "11px", color: "#64748b", marginBottom: "16px" }}>
               Tailored for {jobData?.company || "this role"}
             </p>
-            <ATSResultCard before={atsScore} after={afterScore || atsScore} />
+
+            {/* Before / After ATS score */}
+            <div style={{ ...s.card, width: "100%", marginBottom: "6px" }}>
+              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
+                <div style={{ width: "28px", height: "28px", borderRadius: "8px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <svg width="14" height="16" viewBox="0 0 64 78" fill="none"><path d="M32 4 L56 16 L56 40 C56 56 44 68 32 74 C20 68 8 56 8 40 L8 16 Z" fill="none" stroke="#fff" strokeWidth="5" strokeLinejoin="round"/></svg>
+                </div>
+                <span style={{ fontSize: "12px", fontWeight: 700, color: "#334155" }}>ATS Score</span>
+              </div>
+              <div style={{ marginBottom: "8px" }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>Before</span>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#f97316" }}>{atsScore}%</span>
+                </div>
+                <div style={{ height: "5px", borderRadius: "3px", background: "#f1f5f9", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: "3px", background: "#f97316", width: `${atsScore}%` }} />
+                </div>
+              </div>
+              <div>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
+                  <span style={{ fontSize: "11px", color: "#64748b" }}>After</span>
+                  <span style={{ fontSize: "12px", fontWeight: 700, color: "#16a34a" }}>{afterScore || atsScore}%</span>
+                </div>
+                <div style={{ height: "5px", borderRadius: "3px", background: "#f1f5f9", overflow: "hidden" }}>
+                  <div style={{ height: "100%", borderRadius: "3px", background: "#22c55e", width: `${afterScore || atsScore}%` }} />
+                </div>
+              </div>
+            </div>
+
             <div style={{ width: "100%", margin: "6px 0 16px" }}>
               {["Bullets rewritten with role-specific metrics", "Missing keywords added naturally", "Summary tailored to JD", "Skills reordered"].map((t, i) => (
                 <div key={i} style={{ display: "flex", gap: "8px", alignItems: "center", padding: "3px 0" }}>
@@ -566,6 +718,7 @@ const SidebarApp = ({ onClose }) => {
                 </div>
               ))}
             </div>
+
             <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "6px", marginTop: "auto" }}>
               <button style={s.btn} onClick={handleDownload}>&darr; Download Tailored Resume</button>
               <button

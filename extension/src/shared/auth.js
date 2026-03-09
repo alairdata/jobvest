@@ -151,6 +151,41 @@ export const fetchResumeFromSupabase = async (accessToken, userId) => {
   };
 };
 
+// Sign in with email + password via Supabase
+export const signInWithEmail = async (email, password) => {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/token?grant_type=password`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error_description || err.msg || "Invalid email or password");
+  }
+  const data = await res.json();
+  const session = {
+    access_token: data.access_token,
+    refresh_token: data.refresh_token,
+    expires_at: Math.floor(Date.now() / 1000) + (data.expires_in || 3600),
+  };
+  const user = data.user || (await getUser(data.access_token));
+  await saveSession({ session, user });
+  return { session, user };
+};
+
+// Request password reset email via Supabase
+export const resetPassword = async (email) => {
+  const res = await fetch(`${SUPABASE_URL}/auth/v1/recover`, {
+    method: "POST",
+    headers: { apikey: SUPABASE_ANON_KEY, "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error_description || err.msg || "Failed to send reset email");
+  }
+};
+
 // Sign out
 export const signOut = async () => {
   const stored = await getStoredSession();

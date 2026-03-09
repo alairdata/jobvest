@@ -1,4 +1,4 @@
-import { signInWithGoogle, restoreSession, fetchResumeFromSupabase, signOut } from "../shared/auth.js";
+import { signInWithGoogle, signInWithEmail, resetPassword, restoreSession, fetchResumeFromSupabase, signOut } from "../shared/auth.js";
 
 const API_BASE = "https://jobvest.vercel.app/api";
 
@@ -24,6 +24,22 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "SIGN_IN_GOOGLE") {
     signInWithGoogle()
       .then(sendResponse)
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  // Email/password sign-in
+  if (msg.type === "SIGN_IN_EMAIL") {
+    signInWithEmail(msg.email, msg.password)
+      .then(sendResponse)
+      .catch((err) => sendResponse({ error: err.message }));
+    return true;
+  }
+
+  // Password reset
+  if (msg.type === "RESET_PASSWORD") {
+    resetPassword(msg.email)
+      .then(() => sendResponse({ success: true }))
       .catch((err) => sendResponse({ error: err.message }));
     return true;
   }
