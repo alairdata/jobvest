@@ -648,6 +648,15 @@ const AppContent = () => {
   useEffect(() => {
     if (!verifyTokenFromUrl || verifying || verifySuccess) return;
 
+    // Already verified — just clean the URL and move on
+    if (emailVerified === true) {
+      window.history.replaceState({}, "", window.location.pathname);
+      return;
+    }
+
+    // Wait until we know the verification status (null = still checking)
+    if (isAuthenticated && emailVerified === null) return;
+
     setVerifying(true);
     verifyToken(verifyTokenFromUrl)
       .then(() => {
@@ -656,9 +665,10 @@ const AppContent = () => {
       })
       .catch((err) => {
         setVerifyError(err.message);
+        window.history.replaceState({}, "", window.location.pathname);
       })
       .finally(() => setVerifying(false));
-  }, []);
+  }, [emailVerified]);
 
   // Update URL based on current view
   useEffect(() => {
