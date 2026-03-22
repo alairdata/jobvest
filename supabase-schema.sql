@@ -6,6 +6,7 @@ create table if not exists public.profiles (
   name text default '',
   email text default '',
   avatar_url text,
+  email_verified boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -46,11 +47,21 @@ create table if not exists public.applications (
   created_at timestamptz default now()
 );
 
+-- 5. Verification tokens
+create table if not exists public.verification_tokens (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  token text not null unique,
+  expires_at timestamptz not null,
+  created_at timestamptz default now()
+);
+
 -- Enable Row Level Security on all tables
 alter table public.profiles enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.resumes enable row level security;
 alter table public.applications enable row level security;
+alter table public.verification_tokens enable row level security;
 
 -- RLS Policies: users can only access their own data
 
@@ -118,11 +129,12 @@ create policy "Users can delete own applications"
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, email)
+  insert into public.profiles (id, name, email, email_verified)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
-    new.email
+    new.email,
+    case when new.raw_app_meta_data->>'provider' = 'google' then true else false end
   );
   insert into public.user_settings (id)
   values (new.id);

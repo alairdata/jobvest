@@ -8,15 +8,47 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [emailVerified, setEmailVerified] = useState(null); // null = unknown, true/false = checked
+
+  // Check email_verified status from profiles table
+  const checkEmailVerified = async (userId) => {
+    try {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email_verified")
+        .eq("id", userId)
+        .maybeSingle();
+      if (error) throw error;
+      const verified = data?.email_verified ?? false;
+      setEmailVerified(verified);
+      return verified;
+    } catch (err) {
+      console.warn("Failed to check email verification:", err);
+      setEmailVerified(false);
+      return false;
+    }
+  };
 
   useEffect(() => {
-    // 1. Register listener FIRST so we catch all auth events
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        setUser(session?.user ?? null);
+        const currentUser = session?.user ?? null;
+        setUser(currentUser);
         setLoading(false);
 
-        // Clean up OAuth tokens from URL after successful sign in
+        if (currentUser) {
+          // Check if Google user (always verified) or email user
+          const provider = currentUser.app_metadata?.provider;
+          if (provider === "google") {
+            setEmailVerified(true);
+          } else {
+            checkEmailVerified(currentUser.id);
+          }
+        } else {
+          setEmailVerified(null);
+        }
+
+        // Clean up OAuth tokens from URL
         if (event === "SIGNED_IN") {
           const hasTokens = window.location.hash.includes("access_token") ||
             window.location.search.includes("code=");
@@ -27,23 +59,19 @@ export const AuthProvider = ({ children }) => {
       }
     );
 
-    // 2. Handle OAuth redirect: explicitly exchange code if present
+    // Handle OAuth redirect
     const params = new URLSearchParams(window.location.search);
     const code = params.get("code");
 
     if (code) {
-      // PKCE flow: exchange the code for a session
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
         if (error) {
           console.error("OAuth code exchange failed:", error);
           setLoading(false);
         }
-        // Success is handled by onAuthStateChange firing SIGNED_IN
         window.history.replaceState({}, "", window.location.pathname);
       });
     } else if (window.location.hash.includes("access_token")) {
-      // Implicit flow: detectSessionInUrl should handle this,
-      // but give it a moment then fall back to getSession
       setTimeout(() => {
         supabase.auth.getSession().then(({ data: { session } }) => {
           if (session) {
@@ -54,7 +82,6 @@ export const AuthProvider = ({ children }) => {
         });
       }, 500);
     } else {
-      // Normal page load: check for existing session
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null);
         setLoading(false);
@@ -71,6 +98,55 @@ export const AuthProvider = ({ children }) => {
       options: { data: { full_name: name } },
     });
     if (error) throw error;
+
+    // Send verification email via our API
+    if (data.user) {
+      try {
+        await fetch("/api/send-verification", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: data.user.id,
+            email,
+            name,
+          }),
+        });
+      } catch (err) {
+        console.warn("Failed to send verification email:", err);
+      }
+    }
+
+    return data;
+  };
+
+  const resendVerification = async () => {
+    if (!user) return;
+    const res = await fetch("/api/send-verification", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userId: user.id,
+        email: user.email,
+        name: user.user_metadata?.full_name || "",
+      }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to resend verification email");
+    }
+  };
+
+  const verifyToken = async (token) => {
+    const res = await fetch("/api/verify-email", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ token }),
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.error || "Verification failed");
+    }
+    setEmailVerified(true);
     return data;
   };
 
@@ -95,15 +171,19 @@ export const AuthProvider = ({ children }) => {
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+    setEmailVerified(null);
   };
 
   const value = {
     user,
     loading,
+    emailVerified,
     signUp,
     signIn,
     signInWithGoogle,
     signOut,
+    resendVerification,
+    verifyToken,
     isAuthenticated: !!user,
   };
 

@@ -41,7 +41,7 @@ const loadSettings = () => {
 };
 
 const AppContent = () => {
-  const { user, isAuthenticated, loading: authLoading, signOut } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, signOut, emailVerified, verifyToken, resendVerification } = useAuth();
   const [guestMode, setGuestMode] = useState(
     () => localStorage.getItem(GUEST_KEY) === "true"
   );
@@ -96,6 +96,10 @@ const AppContent = () => {
 
   // Settings state
   const [settings, setSettings] = useState(loadSettings);
+
+  // Email verification resend state
+  const [resending, setResending] = useState(false);
+  const [resent, setResent] = useState(false);
 
   // ── Sync from Supabase when user signs in ──
   useEffect(() => {
@@ -603,6 +607,28 @@ const AppContent = () => {
   // Derive profile name: settings > saved resume > user email > empty
   const profileName = settings.profile.name || candidateName || user?.user_metadata?.full_name || "";
 
+  // Handle email verification token from URL
+  const [verifying, setVerifying] = useState(false);
+  const [verifyError, setVerifyError] = useState("");
+  const [verifySuccess, setVerifySuccess] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("verify_token");
+    if (!token || verifying || verifySuccess) return;
+
+    setVerifying(true);
+    verifyToken(token)
+      .then(() => {
+        setVerifySuccess(true);
+        window.history.replaceState({}, "", window.location.pathname);
+      })
+      .catch((err) => {
+        setVerifyError(err.message);
+      })
+      .finally(() => setVerifying(false));
+  }, []);
+
   // Show auth screen if not authenticated and not in guest mode
   if (authLoading) {
     return (
@@ -619,6 +645,74 @@ const AppContent = () => {
 
   if (!isAuthenticated && !guestMode) {
     return <AuthView onSkip={handleSkipAuth} />;
+  }
+
+  // Show verification pending screen for unverified email users
+  if (isAuthenticated && emailVerified === false && !guestMode) {
+    const handleResend = async () => {
+      setResending(true);
+      try {
+        await resendVerification();
+        setResent(true);
+      } catch (err) {
+        console.error("Resend failed:", err);
+      } finally {
+        setResending(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center" style={{ fontFamily: "'DM Sans', sans-serif", padding: "24px" }}>
+        <div style={{ textAlign: "center", maxWidth: "420px" }}>
+          <div style={{
+            width: "64px", height: "64px", margin: "0 auto 24px", borderRadius: "16px",
+            background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center",
+            fontSize: "28px", color: "#3b82f6",
+          }}>&#9993;</div>
+          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "24px", fontWeight: 800, color: "#0f172a", margin: "0 0 12px" }}>
+            {verifySuccess ? "Email verified!" : "Verify your email"}
+          </h1>
+          {verifySuccess ? (
+            <p style={{ fontSize: "14px", color: "#16a34a", lineHeight: 1.6, margin: "0 0 24px", fontWeight: 600 }}>
+              Your account is ready. Redirecting...
+            </p>
+          ) : (
+            <>
+              <p style={{ fontSize: "14px", color: "#64748b", lineHeight: 1.6, margin: "0 0 24px" }}>
+                We sent a verification link to <strong style={{ color: "#0f172a" }}>{user?.email}</strong>.
+                Click the link to activate your account.
+              </p>
+              {verifyError && (
+                <p style={{ fontSize: "13px", color: "#ef4444", fontWeight: 500, margin: "0 0 16px" }}>{verifyError}</p>
+              )}
+              <button
+                onClick={handleResend}
+                disabled={resending || resent}
+                style={{
+                  fontSize: "13px", color: resent ? "#16a34a" : "#3b82f6", fontWeight: 700,
+                  cursor: resending || resent ? "default" : "pointer",
+                  background: "none", border: "none", fontFamily: "'DM Sans', sans-serif",
+                  marginBottom: "16px",
+                }}
+              >
+                {resent ? "Verification email sent!" : resending ? "Sending..." : "Resend verification email"}
+              </button>
+              <br />
+            </>
+          )}
+          <button
+            onClick={handleSignOut}
+            style={{
+              fontSize: "13px", color: "#94a3b8", fontWeight: 600,
+              cursor: "pointer", background: "none", border: "none",
+              fontFamily: "'DM Sans', sans-serif",
+            }}
+          >
+            Sign out
+          </button>
+        </div>
+      </div>
+    );
   }
 
   // Show loading overlay while syncing cloud data
