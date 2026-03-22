@@ -668,6 +668,8 @@ const AppContent = () => {
     let path;
     if (!isAuthenticated && !guestMode) {
       path = "/sign-in";
+    } else if (isAuthenticated && emailVerified === false && !guestMode) {
+      path = "/verify";
     } else if (tab === "home" && !hasResume) {
       path = "/get-started";
     } else if (tab === "home" && hasResume && mode === "fix") {
@@ -682,7 +684,7 @@ const AppContent = () => {
     if (window.location.pathname !== path) {
       window.history.replaceState({}, "", path);
     }
-  }, [authLoading, isAuthenticated, guestMode, tab, hasResume, mode]);
+  }, [authLoading, isAuthenticated, guestMode, tab, hasResume, mode, emailVerified]);
 
   // Show auth screen if not authenticated and not in guest mode
   if (authLoading) {
@@ -772,7 +774,7 @@ const AppContent = () => {
                 Your account is ready.
               </p>
               <button
-                onClick={() => window.location.replace("/")}
+                onClick={() => { window.location.href = "/"; }}
                 style={{
                   fontFamily: "'Sora', sans-serif", fontSize: "14px", fontWeight: 600,
                   padding: "14px 36px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
