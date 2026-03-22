@@ -126,13 +126,6 @@ const SettingsPanel = ({
                   placeholder="Your name"
                   className="w-full py-1.5 px-3 rounded-lg border border-stone-200 text-[14px] text-[#1a1a1a] font-sans focus:outline-none focus:border-brand"
                 />
-                <input
-                  type="email"
-                  value={editEmail}
-                  onChange={(e) => setEditEmail(e.target.value)}
-                  placeholder="your@email.com"
-                  className="w-full py-1.5 px-3 rounded-lg border border-stone-200 text-[13px] text-[#1a1a1a] font-sans focus:outline-none focus:border-brand"
-                />
                 <div className="flex gap-2">
                   <button
                     onClick={handleSaveProfile}
