@@ -11,19 +11,35 @@ export const AuthProvider = ({ children }) => {
   const [emailVerified, setEmailVerified] = useState(null); // null = unknown, true/false = checked
 
   // Check email_verified status from profiles table
-  const checkEmailVerified = async (userId) => {
+  const checkEmailVerified = async (currentUser) => {
     try {
       const { data, error } = await supabase
         .from("profiles")
         .select("email_verified")
-        .eq("id", userId)
+        .eq("id", currentUser.id)
         .maybeSingle();
       if (error) throw error;
-      const verified = data?.email_verified ?? false;
-      setEmailVerified(verified);
-      return verified;
+      const profileVerified = data?.email_verified ?? false;
+
+      // Fallback: if Supabase auth says confirmed but profile doesn't, fix the profile
+      if (!profileVerified && currentUser.email_confirmed_at) {
+        await supabase
+          .from("profiles")
+          .update({ email_verified: true, updated_at: new Date().toISOString() })
+          .eq("id", currentUser.id);
+        setEmailVerified(true);
+        return true;
+      }
+
+      setEmailVerified(profileVerified);
+      return profileVerified;
     } catch (err) {
       console.warn("Failed to check email verification:", err);
+      // Last resort: trust Supabase auth confirmation
+      if (currentUser.email_confirmed_at) {
+        setEmailVerified(true);
+        return true;
+      }
       setEmailVerified(false);
       return false;
     }
@@ -42,7 +58,7 @@ export const AuthProvider = ({ children }) => {
           if (provider === "google") {
             setEmailVerified(true);
           } else {
-            checkEmailVerified(currentUser.id);
+            checkEmailVerified(currentUser);
           }
         } else {
           setEmailVerified(null);
