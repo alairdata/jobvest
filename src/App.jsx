@@ -668,7 +668,7 @@ const AppContent = () => {
     let path;
     if (!isAuthenticated && !guestMode) {
       path = "/sign-in";
-    } else if (isAuthenticated && emailVerified === false && !guestMode) {
+    } else if (isAuthenticated && emailVerified === false && !verifySuccess && !guestMode) {
       path = "/verify";
     } else if (tab === "home" && !hasResume) {
       path = "/get-started";
@@ -723,7 +723,8 @@ const AppContent = () => {
   }
 
   // Show verification pending screen for unverified email users
-  if (isAuthenticated && emailVerified === false && !guestMode) {
+  // Skip if we just verified in this session (verifySuccess) — emailVerified state catches up
+  if (isAuthenticated && emailVerified === false && !verifySuccess && !guestMode) {
     const handleResend = async () => {
       setResending(true);
       try {
