@@ -634,7 +634,7 @@ const AppContent = () => {
   };
 
   // Derive profile name: settings > saved resume > user email > empty
-  const profileName = settings.profile.name || candidateName || user?.user_metadata?.full_name || "";
+  const profileName = settings.profile.name || user?.user_metadata?.full_name || candidateName || "";
 
   // Capture verify token at render time (before any effect can strip the URL)
   const [verifyTokenFromUrl] = useState(() => {
