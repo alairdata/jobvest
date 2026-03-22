@@ -36,8 +36,7 @@ const AuthView = ({ onSkip }) => {
           return;
         }
         await signUp(email, password, name.trim());
-        // Verification email is sent by AuthContext.signUp
-        // App.jsx will show the verification pending screen
+        setCheckEmail(true);
       } else {
         await signIn(email, password);
       }

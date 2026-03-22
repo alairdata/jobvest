@@ -104,14 +104,8 @@ export const AuthProvider = ({ children }) => {
       throw new Error(err.error || "Signup failed");
     }
 
-    // Sign in the newly created user client-side
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    if (error) throw error;
-
-    return data;
+    // Don't sign in — user must verify email first
+    return { needsVerification: true };
   };
 
   const resendVerification = async () => {
