@@ -592,8 +592,19 @@ const AppContent = () => {
     try {
       await signOut();
       localStorage.removeItem(GUEST_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SETTINGS_KEY);
       setCloudLoaded(false);
       setGuestMode(false);
+      setHasResume(false);
+      setResumeText("");
+      setResumeFileName("");
+      setResumeScore(null);
+      setResumeFeedback(null);
+      setCandidateName("");
+      setSettings({ ...defaultSettings });
+      setUserApplications([]);
+      setAppStatuses([]);
     } catch (err) {
       console.error("Sign out failed:", err);
     }
