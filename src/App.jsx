@@ -663,8 +663,10 @@ const AppContent = () => {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-navy to-brand-deep flex items-center justify-center text-white text-lg font-bold animate-pulse">
-            ✧
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
           <p className="text-sm text-stone-400">Loading...</p>
         </div>
@@ -749,10 +751,12 @@ const AppContent = () => {
     return (
       <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-navy to-brand-deep flex items-center justify-center text-white text-lg font-bold animate-pulse">
-            ✧
+          <div className="flex items-center gap-1.5">
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "0ms" }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "150ms" }} />
+            <div className="w-2 h-2 rounded-full bg-blue-500 animate-bounce" style={{ animationDelay: "300ms" }} />
           </div>
-          <p className="text-sm text-stone-400">Syncing your data...</p>
+          <p className="text-sm text-stone-400">Loading...</p>
         </div>
       </div>
     );
