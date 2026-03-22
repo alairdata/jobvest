@@ -769,8 +769,19 @@ const AppContent = () => {
                 Email verified!
               </h1>
               <p style={{ fontFamily: "'Sora', sans-serif", fontSize: "14px", fontWeight: 300, color: "#16a34a", lineHeight: 1.8, marginBottom: "32px", animation: "fadeUp 0.6s ease 0.5s both" }}>
-                Your account is ready. Redirecting...
+                Your account is ready.
               </p>
+              <button
+                onClick={() => window.location.replace("/")}
+                style={{
+                  fontFamily: "'Sora', sans-serif", fontSize: "14px", fontWeight: 600,
+                  padding: "14px 36px", background: "linear-gradient(135deg, #3b82f6, #1d4ed8)",
+                  color: "#fff", border: "none", borderRadius: "10px", cursor: "pointer",
+                  animation: "fadeUp 0.6s ease 0.6s both",
+                }}
+              >
+                Continue to JobVest
+              </button>
             </>
           ) : (
             <>
