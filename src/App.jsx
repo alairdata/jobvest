@@ -868,21 +868,21 @@ const AppContent = () => {
               >
                 {resent ? "Verification email sent!" : resending ? "Sending..." : "Resend verification email"}
               </button>
+
+              {/* Sign out */}
+              <button
+                onClick={handleSignOut}
+                style={{
+                  fontFamily: "'Sora', sans-serif", fontSize: "13px", fontWeight: 500, color: "#94a3b8",
+                  background: "none", border: "none", cursor: "pointer", transition: "color 0.2s",
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.color = "#1d4ed8"}
+                onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
+              >
+                &larr; Sign out
+              </button>
             </>
           )}
-
-          {/* Sign out */}
-          <button
-            onClick={handleSignOut}
-            style={{
-              fontFamily: "'Sora', sans-serif", fontSize: "13px", fontWeight: 500, color: "#94a3b8",
-              background: "none", border: "none", cursor: "pointer", transition: "color 0.2s",
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.color = "#1d4ed8"}
-            onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
-          >
-            &larr; Sign out
-          </button>
         </div>
       </div>
     );
