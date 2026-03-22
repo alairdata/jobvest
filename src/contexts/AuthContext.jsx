@@ -144,7 +144,12 @@ export const AuthProvider = ({ children }) => {
       email,
       password,
     });
-    if (error) throw error;
+    if (error) {
+      if (error.message === "Invalid login credentials") {
+        throw new Error("No account found. Create a new account instead.");
+      }
+      throw error;
+    }
     return data;
   };
 
