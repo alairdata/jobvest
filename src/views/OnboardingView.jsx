@@ -9,8 +9,7 @@ const OnboardingView = ({ onImport }) => {
   ];
 
   return (
-    <div className="max-w-[860px] mx-auto py-8 sm:py-15 px-4 sm:px-6 text-center select-none cursor-default">
-      <div className="w-[200px] h-20 mx-auto -mt-[30px] bg-[radial-gradient(ellipse,rgba(255,200,120,0.25)_0%,transparent_70%)] pointer-events-none select-none" aria-hidden="true" />
+    <div className="max-w-[860px] mx-auto py-4 sm:py-6 px-4 sm:px-6 text-center select-none cursor-default">
       <h1 className="font-heading text-2xl sm:text-[34px] font-extrabold mb-6 sm:mb-10 text-[#1a1a1a]">
         Here's how it works
       </h1>
