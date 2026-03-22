@@ -206,7 +206,7 @@ const ConfirmEmailPage = ({ email, onBack }) => {
   );
 };
 
-const AuthView = ({ onSkip }) => {
+const AuthView = ({ onSkip, verifySuccess, verifying, verifyError }) => {
   const { signIn, signUp, signInWithGoogle } = useAuth();
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -382,16 +382,52 @@ const AuthView = ({ onSkip }) => {
             </span>
           </div>
 
+          {verifySuccess && (
+            <div style={{
+              padding: "12px 16px", borderRadius: "10px", marginBottom: "20px",
+              background: "#f0fdf4", border: "1px solid #bbf7d0",
+              display: "flex", alignItems: "center", gap: "8px",
+            }}>
+              <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                <circle cx="10" cy="10" r="10" fill="#22c55e"/>
+                <path d="M6 10l3 3 5-6" stroke="#fff" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#15803d" }}>
+                Email verified! Sign in to continue.
+              </span>
+            </div>
+          )}
+          {verifying && (
+            <div style={{
+              padding: "12px 16px", borderRadius: "10px", marginBottom: "20px",
+              background: "#eff6ff", border: "1px solid #bfdbfe",
+            }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#1d4ed8" }}>
+                Verifying your email...
+              </span>
+            </div>
+          )}
+          {verifyError && (
+            <div style={{
+              padding: "12px 16px", borderRadius: "10px", marginBottom: "20px",
+              background: "#fef2f2", border: "1px solid #fecaca",
+            }}>
+              <span style={{ fontSize: "13px", fontWeight: 600, color: "#dc2626" }}>
+                {verifyError}
+              </span>
+            </div>
+          )}
+
           <h2 style={{
             fontFamily: "'Sora', sans-serif", fontSize: "26px", fontWeight: 800,
             color: "#0f172a", margin: "0 0 6px", letterSpacing: "-0.3px",
           }}>
-            {isSignUp ? "Create your account" : "Welcome back"}
+            {isSignUp ? "Create your account" : verifySuccess ? "You're verified!" : "Welcome back"}
           </h2>
           <p style={{ fontSize: "14px", color: "#64748b", margin: "0 0 32px" }}>
             {isSignUp
               ? "Start tailoring your resume in minutes."
-              : "Sign in to continue your job search."
+              : verifySuccess ? "Sign in to get started." : "Sign in to continue your job search."
             }
           </p>
 

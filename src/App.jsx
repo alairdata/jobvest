@@ -636,18 +636,20 @@ const AppContent = () => {
   // Derive profile name: settings > saved resume > user email > empty
   const profileName = settings.profile.name || candidateName || user?.user_metadata?.full_name || "";
 
-  // Handle email verification token from URL
+  // Capture verify token at render time (before any effect can strip the URL)
+  const [verifyTokenFromUrl] = useState(() => {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("verify_token");
+  });
   const [verifying, setVerifying] = useState(false);
   const [verifyError, setVerifyError] = useState("");
   const [verifySuccess, setVerifySuccess] = useState(false);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const token = params.get("verify_token");
-    if (!token || verifying || verifySuccess) return;
+    if (!verifyTokenFromUrl || verifying || verifySuccess) return;
 
     setVerifying(true);
-    verifyToken(token)
+    verifyToken(verifyTokenFromUrl)
       .then(() => {
         setVerifySuccess(true);
         window.history.replaceState({}, "", window.location.pathname);
@@ -661,6 +663,8 @@ const AppContent = () => {
   // Update URL based on current view
   useEffect(() => {
     if (authLoading) return;
+    // Don't replace URL while verify token is being processed
+    if (verifyTokenFromUrl && !verifySuccess && !verifyError) return;
     let path;
     if (!isAuthenticated && !guestMode) {
       path = "/sign-in";
@@ -697,7 +701,7 @@ const AppContent = () => {
   }
 
   if (!isAuthenticated && !guestMode) {
-    return <AuthView onSkip={handleSkipAuth} />;
+    return <AuthView onSkip={handleSkipAuth} verifySuccess={verifySuccess} verifying={verifying} verifyError={verifyError} />;
   }
 
   // Show verification pending screen for unverified email users

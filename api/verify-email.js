@@ -37,6 +37,13 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Verification link has expired. Please request a new one." });
     }
 
+    // Mark email as confirmed at the Supabase auth level (so sign-in works)
+    const { error: authError } = await supabase.auth.admin.updateUserById(
+      tokenRow.user_id,
+      { email_confirm: true }
+    );
+    if (authError) throw authError;
+
     // Mark profile as verified
     const { error: updateError } = await supabase
       .from("profiles")

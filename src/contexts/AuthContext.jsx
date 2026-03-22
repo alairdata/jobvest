@@ -148,6 +148,9 @@ export const AuthProvider = ({ children }) => {
       if (error.message === "Invalid login credentials") {
         throw new Error("No account found. Create a new account instead.");
       }
+      if (error.message?.toLowerCase().includes("email not confirmed")) {
+        throw new Error("Please verify your email first. Check your inbox for the verification link.");
+      }
       throw error;
     }
     return data;
