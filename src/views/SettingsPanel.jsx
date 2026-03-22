@@ -29,12 +29,15 @@ const SettingsPanel = ({
   isAuthenticated,
   user,
   onSignOut,
+  onDeleteAccount,
   guestMode,
 }) => {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
   const [editEmail, setEditEmail] = useState(profile.email);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [toast, setToast] = useState(null);
   const [syncStatus, setSyncStatus] = useState(null);
 
@@ -408,6 +411,46 @@ const SettingsPanel = ({
               >
                 Clear All Data
               </button>
+            )}
+
+            {isAuthenticated && (
+              <div className="mt-6 pt-5 border-t border-red-200">
+                <p className="text-[13px] font-semibold text-[#1a1a1a] mb-1">
+                  Delete account
+                </p>
+                <p className="text-[12px] text-stone-500 mb-4">
+                  Permanently delete your account and all associated data. This cannot be undone.
+                </p>
+                {confirmDelete ? (
+                  <div className="flex gap-2">
+                    <button
+                      onClick={async () => {
+                        setDeleting(true);
+                        await onDeleteAccount();
+                        setDeleting(false);
+                      }}
+                      disabled={deleting}
+                      className="py-2.5 px-5 rounded-xl border-none bg-red-600 text-white text-[13px] font-bold cursor-pointer font-sans disabled:opacity-50"
+                    >
+                      {deleting ? "Deleting..." : "Yes, delete my account"}
+                    </button>
+                    <button
+                      onClick={() => setConfirmDelete(false)}
+                      disabled={deleting}
+                      className="py-2.5 px-5 rounded-xl border border-stone-200 bg-white text-stone-600 text-[13px] font-semibold cursor-pointer font-sans"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => setConfirmDelete(true)}
+                    className="py-2.5 px-5 rounded-xl border border-red-200 bg-white text-red-600 text-[13px] font-semibold cursor-pointer font-sans hover:bg-red-50 transition-colors"
+                  >
+                    Delete Account
+                  </button>
+                )}
+              </div>
             )}
           </div>
         </div>

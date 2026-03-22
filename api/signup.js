@@ -18,6 +18,8 @@ export default async function handler(req, res) {
   }
 
   try {
+    let userId;
+
     // Create user via admin API with email_confirm: true
     // This skips Supabase's built-in confirmation email
     const { data: userData, error: createError } = await supabase.auth.admin.createUser({
@@ -28,14 +30,41 @@ export default async function handler(req, res) {
     });
 
     if (createError) {
-      // Handle duplicate email
+      // Handle duplicate email — if unverified, resend verification email
       if (createError.message?.includes("already been registered")) {
-        return res.status(409).json({ error: "An account with this email already exists" });
+        // Look up the existing user
+        const { data: { users } } = await supabase.auth.admin.listUsers();
+        const existingUser = users?.find((u) => u.email === email);
+
+        if (existingUser) {
+          // Check if they've verified via our custom flow
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("email_verified")
+            .eq("id", existingUser.id)
+            .maybeSingle();
+
+          if (!profile?.email_verified) {
+            // Update password in case they forgot it
+            await supabase.auth.admin.updateUserById(existingUser.id, {
+              password,
+              user_metadata: { full_name: name || existingUser.user_metadata?.full_name || "" },
+            });
+
+            // Resend verification — fall through to token generation below
+            userId = existingUser.id;
+          } else {
+            return res.status(409).json({ error: "An account with this email already exists. Please sign in." });
+          }
+        } else {
+          return res.status(409).json({ error: "An account with this email already exists" });
+        }
+      } else {
+        throw createError;
       }
-      throw createError;
     }
 
-    const userId = userData.user.id;
+    if (!userId) userId = userData.user.id;
 
     // Generate verification token for Resend email
     const token = crypto.randomBytes(32).toString("hex");

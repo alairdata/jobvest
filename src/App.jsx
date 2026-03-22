@@ -41,7 +41,7 @@ const loadSettings = () => {
 };
 
 const AppContent = () => {
-  const { user, isAuthenticated, loading: authLoading, signOut, emailVerified, verifyToken, resendVerification } = useAuth();
+  const { user, isAuthenticated, loading: authLoading, signOut, deleteAccount, emailVerified, verifyToken, resendVerification } = useAuth();
   const [guestMode, setGuestMode] = useState(
     () => localStorage.getItem(GUEST_KEY) === "true"
   );
@@ -599,6 +599,24 @@ const AppContent = () => {
     }
   };
 
+  const handleDeleteAccount = async () => {
+    try {
+      await deleteAccount();
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(SETTINGS_KEY);
+      localStorage.removeItem(GUEST_KEY);
+      setCloudLoaded(false);
+      setGuestMode(false);
+      setSettings({ ...defaultSettings });
+      setHasResume(false);
+      setResumeText("");
+      setResumeFileName("");
+    } catch (err) {
+      console.error("Delete account failed:", err);
+      alert(`Failed to delete account: ${err.message}`);
+    }
+  };
+
   const handleSkipAuth = () => {
     localStorage.setItem(GUEST_KEY, "true");
     setGuestMode(true);
@@ -829,6 +847,7 @@ const AppContent = () => {
           isAuthenticated={isAuthenticated}
           user={user}
           onSignOut={handleSignOut}
+          onDeleteAccount={handleDeleteAccount}
           guestMode={guestMode}
         />
       )}

@@ -169,6 +169,21 @@ export const AuthProvider = ({ children }) => {
     setEmailVerified(null);
   };
 
+  const deleteAccount = async () => {
+    if (!user) throw new Error("Not signed in");
+    const res = await fetch("/api/delete-account", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: user.id }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to delete account");
+    }
+    await supabase.auth.signOut();
+    setEmailVerified(null);
+  };
+
   const value = {
     user,
     loading,
@@ -177,6 +192,7 @@ export const AuthProvider = ({ children }) => {
     signIn,
     signInWithGoogle,
     signOut,
+    deleteAccount,
     resendVerification,
     verifyToken,
     isAuthenticated: !!user,
