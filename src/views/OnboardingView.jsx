@@ -3,9 +3,9 @@ import { useRef } from "react";
 const OnboardingView = ({ onImport }) => {
   const fileInputRef = useRef(null);
   const steps = [
-    { icon: "📄", bg: "bg-blue-50", title: "Step 1", desc: "Import your resume" },
-    { icon: "✏️", bg: "bg-violet-50", title: "Step 2", desc: "Get your Resume Strength Score and feedback on what to improve" },
-    { icon: "🚀", bg: "bg-blue-50", title: "Step 3", desc: "Launch your job search with ATS-optimized, tailored resumes" },
+    { icon: "📄", bg: "bg-blue-50", title: "Step 1", desc: "Import your resume", style: "grayscale" },
+    { icon: "✏️", bg: "bg-violet-50", title: "Step 2", desc: "Get your Resume Strength Score and feedback on what to improve", style: "grayscale" },
+    { icon: "🚀", bg: "bg-blue-50", title: "Step 3", desc: "Launch your job search with ATS-optimized, tailored resumes", style: "grayscale" },
   ];
 
   return (
@@ -20,6 +20,7 @@ const OnboardingView = ({ onImport }) => {
             <div className="w-full sm:flex-[0_0_200px] text-center px-3">
               <div
                 className={`w-[72px] h-[72px] mx-auto mb-4 ${s.bg} rounded-[18px] flex items-center justify-center text-[32px]`}
+                style={{ filter: "grayscale(1)" }}
               >
                 {s.icon}
               </div>
