@@ -658,6 +658,23 @@ const AppContent = () => {
       .finally(() => setVerifying(false));
   }, []);
 
+  // Update URL based on current view
+  useEffect(() => {
+    if (authLoading) return;
+    const path = !isAuthenticated && !guestMode
+      ? "/sign-in"
+      : tab === "home" && !hasResume
+        ? "/get-started"
+        : tab === "home" && hasResume
+          ? "/"
+          : tab === "log"
+            ? "/log"
+            : "/";
+    if (window.location.pathname !== path) {
+      window.history.replaceState({}, "", path);
+    }
+  }, [authLoading, isAuthenticated, guestMode, tab, hasResume]);
+
   // Show auth screen if not authenticated and not in guest mode
   if (authLoading) {
     return (
