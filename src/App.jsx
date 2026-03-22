@@ -693,53 +693,158 @@ const AppContent = () => {
     };
 
     return (
-      <div className="min-h-screen bg-[#f8fafc] flex items-center justify-center" style={{ fontFamily: "'DM Sans', sans-serif", padding: "24px" }}>
-        <div style={{ textAlign: "center", maxWidth: "420px" }}>
-          <div style={{
-            width: "64px", height: "64px", margin: "0 auto 24px", borderRadius: "16px",
-            background: "#eff6ff", display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: "28px", color: "#3b82f6",
-          }}>&#9993;</div>
-          <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "24px", fontWeight: 800, color: "#0f172a", margin: "0 0 12px" }}>
-            {verifySuccess ? "Email verified!" : "Verify your email"}
-          </h1>
+      <div style={{ minHeight: "100vh", background: "#ffffff", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "'Sora', sans-serif", overflow: "hidden" }}>
+        <style>{`
+          @keyframes envDrop { from { opacity:0; transform:translateY(-30px) scale(0.85); } to { opacity:1; transform:translateY(0) scale(1); } }
+          @keyframes spPop { from { opacity:0; transform:scale(0); } to { opacity:1; transform:scale(1); } }
+          @keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+          @keyframes blink { 0%,100% { opacity:1; } 50% { opacity:0.2; } }
+        `}</style>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", maxWidth: "420px", width: "90vw", textAlign: "center", padding: "48px 24px" }}>
+          {/* Envelope */}
+          <div style={{ position: "relative", display: "inline-block", marginBottom: "36px", animation: "envDrop 0.8s cubic-bezier(0.34,1.56,0.64,1) 0.1s both", cursor: "pointer" }}>
+            <svg width="140" height="110" viewBox="0 0 140 110" fill="none">
+              <ellipse cx="70" cy="105" rx="42" ry="5" fill="#dbeafe" opacity="0.7"/>
+              <rect x="8" y="28" width="124" height="72" rx="10" fill="#eff6ff" stroke="#bfdbfe" strokeWidth="1.5"/>
+              <path d="M8 96 L70 64 L132 96" fill="#dbeafe" stroke="#bfdbfe" strokeWidth="1"/>
+              <path d="M8 28 L70 64" stroke="#bfdbfe" strokeWidth="1" fill="none"/>
+              <path d="M132 28 L70 64" stroke="#bfdbfe" strokeWidth="1" fill="none"/>
+              <path d="M8 28 Q70 0 132 28 L70 58 Z" fill="#1d4ed8"/>
+              <path d="M30 24 Q70 8 110 24" stroke="rgba(255,255,255,0.2)" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+              <rect x="36" y="10" width="68" height="52" rx="5" fill="white" stroke="#e2e8f0" strokeWidth="1"/>
+              <rect x="46" y="20" width="48" height="4" rx="2" fill="#bfdbfe"/>
+              <rect x="46" y="29" width="38" height="3" rx="1.5" fill="#e0eeff"/>
+              <rect x="46" y="36" width="42" height="3" rx="1.5" fill="#e0eeff"/>
+              <rect x="46" y="43" width="30" height="3" rx="1.5" fill="#e0eeff"/>
+              <circle cx="108" cy="28" r="14" fill="#2563eb"/>
+              <path d="M102 28l4 4.5 8-9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <div style={{ position: "absolute", top: "2px", right: "-18px", pointerEvents: "none", animation: "spPop 0.4s ease 0.8s both" }}>
+              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                <path d="M10 2v4M10 14v4M2 10h4M14 10h4M4.3 4.3l2.8 2.8M12.9 12.9l2.8 2.8M4.3 15.7l2.8-2.8M12.9 7.1l2.8-2.8" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
+                <circle cx="10" cy="10" r="2.5" fill="#3b82f6"/>
+              </svg>
+            </div>
+            <div style={{ position: "absolute", top: "30px", left: "-20px", pointerEvents: "none", animation: "spPop 0.4s ease 1s both" }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                <path d="M7 1v3M7 10v3M1 7h3M10 7h3M2.8 2.8l2 2M9.2 9.2l2 2M2.8 11.2l2-2M9.2 4.8l2-2" stroke="#bfdbfe" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+            <div style={{ position: "absolute", bottom: "8px", right: "-14px", pointerEvents: "none", animation: "spPop 0.4s ease 1.2s both" }}>
+              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                <path d="M6 1v2.5M6 8.5v2.5M1 6h2.5M8.5 6H11M2.8 2.8l1.5 1.5M7.7 7.7l1.5 1.5M2.8 9.2l1.5-1.5M7.7 4.3l1.5-1.5" stroke="#93c5fd" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+            </div>
+          </div>
+
           {verifySuccess ? (
-            <p style={{ fontSize: "14px", color: "#16a34a", lineHeight: 1.6, margin: "0 0 24px", fontWeight: 600 }}>
-              Your account is ready. Redirecting...
-            </p>
+            <>
+              <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "28px", fontWeight: 700, color: "#0f172a", letterSpacing: "-0.4px", marginBottom: "10px", animation: "fadeUp 0.6s ease 0.4s both" }}>
+                Email verified!
+              </h1>
+              <p style={{ fontFamily: "'Sora', sans-serif", fontSize: "14px", fontWeight: 300, color: "#16a34a", lineHeight: 1.8, marginBottom: "32px", animation: "fadeUp 0.6s ease 0.5s both" }}>
+                Your account is ready. Redirecting...
+              </p>
+            </>
           ) : (
             <>
-              <p style={{ fontSize: "14px", color: "#64748b", lineHeight: 1.6, margin: "0 0 24px" }}>
-                We sent a verification link to <strong style={{ color: "#0f172a" }}>{user?.email}</strong>.
-                Click the link to activate your account.
+              <h1 style={{ fontFamily: "'Sora', sans-serif", fontSize: "28px", fontWeight: 700, color: "#0f172a", letterSpacing: "-0.4px", marginBottom: "10px", animation: "fadeUp 0.6s ease 0.4s both" }}>
+                Verify your email
+              </h1>
+              <p style={{ fontFamily: "'Sora', sans-serif", fontSize: "14px", fontWeight: 300, color: "#64748b", lineHeight: 1.8, marginBottom: "32px", maxWidth: "340px", animation: "fadeUp 0.6s ease 0.5s both" }}>
+                We dropped a link in your inbox.<br />Open it to activate your JobVest account.
               </p>
+
+              {/* Email box */}
+              <div style={{
+                width: "100%", background: "#eff6ff", border: "1px solid #bfdbfe", borderRadius: "14px",
+                padding: "14px 18px", display: "flex", alignItems: "center", gap: "12px",
+                marginBottom: "28px", animation: "fadeUp 0.6s ease 0.6s both",
+              }}>
+                <div style={{
+                  width: "36px", height: "36px", borderRadius: "9px", background: "#dbeafe",
+                  border: "1px solid #bfdbfe", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                }}>
+                  <svg width="17" height="13" viewBox="0 0 17 13" fill="none">
+                    <rect x="0.5" y="0.5" width="16" height="12" rx="3" stroke="#1d4ed8" strokeWidth="1.2"/>
+                    <path d="M0.5 3l8 5.5 8-5.5" stroke="#1d4ed8" strokeWidth="1.2" fill="none"/>
+                  </svg>
+                </div>
+                <div style={{ textAlign: "left", flex: 1 }}>
+                  <div style={{ fontSize: "10px", fontWeight: 600, color: "#93c5fd", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "2px" }}>
+                    Sent to
+                  </div>
+                  <div style={{ fontSize: "13px", fontWeight: 600, color: "#1e3a8a" }}>
+                    {user?.email}
+                  </div>
+                </div>
+                <div style={{ display: "flex", alignItems: "center", gap: "5px", flexShrink: 0 }}>
+                  <div style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#1d4ed8", animation: "blink 1.8s ease infinite" }} />
+                  <span style={{ fontSize: "11px", color: "#1d4ed8", fontWeight: 600 }}>Sent</span>
+                </div>
+              </div>
+
+              {/* Steps */}
+              <div style={{ width: "100%", marginBottom: "28px", animation: "fadeUp 0.6s ease 0.7s both" }}>
+                {[
+                  { num: 1, active: true, title: "Open the email", desc: "Check your inbox or spam folder" },
+                  { num: 2, active: false, title: "Click the confirmation link", desc: "It'll bring you right back" },
+                  { num: 3, active: false, title: "You're in", desc: "Start building your profile" },
+                ].map((step) => (
+                  <div key={step.num} style={{ display: "flex", alignItems: "flex-start", gap: "14px", padding: "13px 0", borderBottom: step.num < 3 ? "1px solid #f1f5f9" : "none", textAlign: "left" }}>
+                    <div style={{
+                      width: "26px", height: "26px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "11px", fontWeight: 700, flexShrink: 0, marginTop: "1px",
+                      background: step.active ? "#dbeafe" : "#f1f5f9",
+                      border: step.active ? "1px solid #93c5fd" : "1px solid #e2e8f0",
+                      color: step.active ? "#1d4ed8" : "#94a3b8",
+                    }}>
+                      {step.num}
+                    </div>
+                    <div>
+                      <div style={{ fontSize: "13px", fontWeight: 600, color: step.active ? "#0f172a" : "#94a3b8", marginBottom: "2px" }}>
+                        {step.title}
+                      </div>
+                      <div style={{ fontSize: "12px", fontWeight: 300, color: "#94a3b8" }}>
+                        {step.desc}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
               {verifyError && (
-                <p style={{ fontSize: "13px", color: "#ef4444", fontWeight: 500, margin: "0 0 16px" }}>{verifyError}</p>
+                <p style={{ fontSize: "13px", color: "#ef4444", fontWeight: 500, marginBottom: "16px" }}>{verifyError}</p>
               )}
+
+              {/* Resend button */}
               <button
                 onClick={handleResend}
                 disabled={resending || resent}
                 style={{
-                  fontSize: "13px", color: resent ? "#16a34a" : "#3b82f6", fontWeight: 700,
+                  fontFamily: "'Sora', sans-serif", fontSize: "13px", fontWeight: 600,
+                  color: resent ? "#16a34a" : "#1d4ed8",
                   cursor: resending || resent ? "default" : "pointer",
-                  background: "none", border: "none", fontFamily: "'DM Sans', sans-serif",
-                  marginBottom: "16px",
+                  background: "none", border: "none", marginBottom: "16px",
+                  animation: "fadeUp 0.5s ease 0.85s both",
                 }}
               >
                 {resent ? "Verification email sent!" : resending ? "Sending..." : "Resend verification email"}
               </button>
-              <br />
             </>
           )}
+
+          {/* Sign out */}
           <button
             onClick={handleSignOut}
             style={{
-              fontSize: "13px", color: "#94a3b8", fontWeight: 600,
-              cursor: "pointer", background: "none", border: "none",
-              fontFamily: "'DM Sans', sans-serif",
+              fontFamily: "'Sora', sans-serif", fontSize: "13px", fontWeight: 500, color: "#94a3b8",
+              background: "none", border: "none", cursor: "pointer", transition: "color 0.2s",
             }}
+            onMouseEnter={(e) => e.currentTarget.style.color = "#1d4ed8"}
+            onMouseLeave={(e) => e.currentTarget.style.color = "#94a3b8"}
           >
-            Sign out
+            &larr; Sign out
           </button>
         </div>
       </div>
