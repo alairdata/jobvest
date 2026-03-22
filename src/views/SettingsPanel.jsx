@@ -87,18 +87,18 @@ const SettingsPanel = ({
         <div className="flex-1 overflow-auto px-4 sm:px-6 py-6">
           {/* Account status banner */}
           {isAuthenticated ? (
-            <div className="flex items-center gap-3 mb-6 py-3 px-4 rounded-xl bg-green-50 border border-green-200">
-              <div className="w-2 h-2 rounded-full bg-green-500 shrink-0" />
+            <div className="flex items-center gap-3 mb-6 py-3 px-4 rounded-xl bg-stone-50 border border-stone-200">
+              <div className="w-2 h-2 rounded-full bg-stone-400 shrink-0" />
               <div className="flex-1 min-w-0">
-                <p className="text-[13px] font-semibold text-green-800">
+                <p className="text-[13px] font-semibold text-stone-700">
                   Signed in
                 </p>
-                <p className="text-[12px] text-green-600 truncate">
+                <p className="text-[12px] text-stone-500 truncate">
                   {user?.email}
                 </p>
               </div>
-              <span className="text-[10px] font-bold text-green-600 tracking-wide uppercase shrink-0">
-                Synced
+              <span className="text-[10px] font-bold text-stone-400 tracking-wide uppercase shrink-0">
+                Not synced
               </span>
             </div>
           ) : guestMode ? (
