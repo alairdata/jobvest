@@ -11,22 +11,38 @@ export default async function handler(req, res) {
     return res.status(405).json({ error: "Method not allowed" });
   }
 
-  const { userId, email, name } = req.body || {};
+  const { email, password, name } = req.body || {};
 
-  if (!userId || !email) {
-    return res.status(400).json({ error: "userId and email are required" });
+  if (!email || !password) {
+    return res.status(400).json({ error: "Email and password are required" });
   }
 
   try {
-    // Generate token
+    // Create user via admin API with email_confirm: true
+    // This skips Supabase's built-in confirmation email
+    const { data: userData, error: createError } = await supabase.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: name || "" },
+    });
+
+    if (createError) {
+      // Handle duplicate email
+      if (createError.message?.includes("already been registered")) {
+        return res.status(409).json({ error: "An account with this email already exists" });
+      }
+      throw createError;
+    }
+
+    const userId = userData.user.id;
+
+    // Generate verification token for Resend email
     const token = crypto.randomBytes(32).toString("hex");
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(); // 24 hours
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
 
     // Delete any existing tokens for this user
-    await supabase
-      .from("verification_tokens")
-      .delete()
-      .eq("user_id", userId);
+    await supabase.from("verification_tokens").delete().eq("user_id", userId);
 
     // Store token
     const { error: insertError } = await supabase
@@ -44,7 +60,7 @@ export default async function handler(req, res) {
 
     const verifyUrl = `${baseUrl}?verify_token=${token}`;
 
-    // Send email via Resend
+    // Send verification email via Resend
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -83,12 +99,12 @@ export default async function handler(req, res) {
 
     if (!emailRes.ok) {
       const err = await emailRes.json().catch(() => ({}));
-      throw new Error(err.message || "Failed to send verification email");
+      console.warn("Failed to send verification email:", err);
     }
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({ success: true, userId });
   } catch (err) {
-    console.error("Send verification error:", err);
-    return res.status(500).json({ error: err.message || "Failed to send verification email" });
+    console.error("Signup error:", err);
+    return res.status(500).json({ error: err.message || "Signup failed" });
   }
 }

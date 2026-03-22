@@ -92,29 +92,24 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const signUp = async (email, password, name) => {
-    const { data, error } = await supabase.auth.signUp({
+    // Create user server-side (skips Supabase's built-in confirmation email)
+    const res = await fetch("/api/signup", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, password, name }),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Signup failed");
+    }
+
+    // Sign in the newly created user client-side
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
-      options: { data: { full_name: name } },
     });
     if (error) throw error;
-
-    // Send verification email via our API
-    if (data.user) {
-      try {
-        await fetch("/api/send-verification", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            userId: data.user.id,
-            email,
-            name,
-          }),
-        });
-      } catch (err) {
-        console.warn("Failed to send verification email:", err);
-      }
-    }
 
     return data;
   };
