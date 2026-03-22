@@ -661,19 +661,24 @@ const AppContent = () => {
   // Update URL based on current view
   useEffect(() => {
     if (authLoading) return;
-    const path = !isAuthenticated && !guestMode
-      ? "/sign-in"
-      : tab === "home" && !hasResume
-        ? "/get-started"
-        : tab === "home" && hasResume
-          ? "/"
-          : tab === "log"
-            ? "/log"
-            : "/";
+    let path;
+    if (!isAuthenticated && !guestMode) {
+      path = "/sign-in";
+    } else if (tab === "home" && !hasResume) {
+      path = "/get-started";
+    } else if (tab === "home" && hasResume && mode === "fix") {
+      path = "/review";
+    } else if (tab === "home" && hasResume && mode === "launch") {
+      path = "/score";
+    } else if (tab === "log") {
+      path = "/log";
+    } else {
+      path = "/";
+    }
     if (window.location.pathname !== path) {
       window.history.replaceState({}, "", path);
     }
-  }, [authLoading, isAuthenticated, guestMode, tab, hasResume]);
+  }, [authLoading, isAuthenticated, guestMode, tab, hasResume, mode]);
 
   // Show auth screen if not authenticated and not in guest mode
   if (authLoading) {
