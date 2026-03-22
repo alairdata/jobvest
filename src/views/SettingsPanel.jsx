@@ -179,7 +179,7 @@ const SettingsPanel = ({
                   Free Plan
                 </p>
                 <p className="text-[13px] text-stone-500 mt-px">
-                  {tailorsMax} tailors/month · Basic scoring
+                  {tailorsMax} tailors/month · Unlimited scores
                 </p>
               </div>
               <span className="text-[11px] font-bold text-brand tracking-[0.5px]">
