@@ -56,8 +56,16 @@ const AppContent = () => {
     } catch { return null; }
   })();
 
-  const [mode, setMode] = useState("fix");
-  const [tab, setTab] = useState("home");
+  const [mode, setMode] = useState(() => {
+    const path = window.location.pathname;
+    if (path === "/score") return "launch";
+    return "fix";
+  });
+  const [tab, setTab] = useState(() => {
+    const path = window.location.pathname;
+    if (path === "/log") return "log";
+    return "home";
+  });
   const [hasResume, setHasResume] = useState(!!saved);
   const [resumeFileName, setResumeFileName] = useState(saved?.resumeFileName || "");
   const [resumeFile, setResumeFile] = useState(null);
