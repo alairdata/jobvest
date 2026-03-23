@@ -555,22 +555,6 @@ const AuthView = ({ onSkip, verifySuccess, verifying, verifyError }) => {
             </span>
           </p>
 
-          {/* Guest mode */}
-          <button
-            onClick={onSkip}
-            style={{
-              width: "100%", marginTop: "16px", padding: "12px",
-              fontSize: "13px", color: "#94a3b8", fontWeight: 600,
-              cursor: "pointer", background: "none", border: "none",
-              fontFamily: "'DM Sans', sans-serif",
-              transition: "color 0.15s",
-            }}
-            onMouseEnter={e => e.currentTarget.style.color = "#64748b"}
-            onMouseLeave={e => e.currentTarget.style.color = "#94a3b8"}
-          >
-            Continue without an account
-          </button>
-
           {/* Terms */}
           {isSignUp && (
             <p style={{ fontSize: "11px", color: "#94a3b8", margin: "12px 0 0", textAlign: "center", lineHeight: 1.5 }}>
