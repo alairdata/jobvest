@@ -46,9 +46,12 @@ const loadSettings = () => {
 
 const AppContent = () => {
   const { user, isAuthenticated, loading: authLoading, signOut, deleteAccount, emailVerified, verifyToken, resendVerification } = useAuth();
-  const [guestMode, setGuestMode] = useState(
-    () => localStorage.getItem(GUEST_KEY) === "true"
-  );
+  const [guestMode, setGuestMode] = useState(false);
+
+  // Clear any existing guest mode on load — guest mode is no longer supported
+  useEffect(() => {
+    localStorage.removeItem(GUEST_KEY);
+  }, []);
   const [cloudLoaded, setCloudLoaded] = useState(false);
   const [cloudLoading, setCloudLoading] = useState(false);
 
