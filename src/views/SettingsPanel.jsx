@@ -83,28 +83,6 @@ const SettingsPanel = ({
 
         <div className="flex-1 overflow-auto px-4 sm:px-6 py-6">
           {/* Account status banner */}
-          {guestMode ? (
-            <div className="flex items-center gap-3 mb-6 py-3 px-4 rounded-xl bg-amber-50 border border-amber-200">
-              <div className="w-2 h-2 rounded-full bg-amber-500 shrink-0" />
-              <div className="flex-1">
-                <p className="text-[13px] font-semibold text-amber-800">
-                  Guest mode
-                </p>
-                <p className="text-[12px] text-amber-600">
-                  Data is only saved on this device
-                </p>
-              </div>
-              <button
-                onClick={() => {
-                  localStorage.removeItem("jobvest_guest_mode");
-                  window.location.reload();
-                }}
-                className="py-1.5 px-3 rounded-lg border-none bg-amber-600 text-white text-[11px] font-bold cursor-pointer font-sans shrink-0"
-              >
-                Sign in
-              </button>
-            </div>
-          ) : null}
 
           {/* Profile */}
           <p className="text-[10px] font-bold text-stone-400 tracking-[1px] uppercase mb-4">
