@@ -180,24 +180,9 @@ const SettingsPanel = ({
               </span>
             </div>
 
-            {/* Usage bar */}
-            <div className="mt-4 mb-2">
-              <div className="h-[6px] rounded-full bg-stone-100 overflow-hidden">
-                <div
-                  className="h-full rounded-full bg-brand transition-[width] duration-500"
-                  style={{ width: `${(tailorsUsed / tailorsMax) * 100}%` }}
-                />
-              </div>
-            </div>
             <p className="text-[12px] text-stone-400 mb-5">
-              {tailorsUsed} of {tailorsMax} tailors used this month
+              Unlimited tailors · Unlimited improvements · Unlimited scores
             </p>
-
-            {tailorsUsed >= tailorsMax && (
-              <p className="text-[12px] text-red-500 font-semibold mb-3">
-                You've used all your free tailors this month. Upgrade for unlimited!
-              </p>
-            )}
 
             <button
               onClick={() => setToast("Coming soon!")}
@@ -206,7 +191,7 @@ const SettingsPanel = ({
               Upgrade to Pro — $9/mo
             </button>
             <p className="text-[11px] text-stone-400 text-center mt-2.5">
-              Unlimited tailors · Priority scoring · Browser companion
+              Priority scoring · Browser companion · More features
             </p>
           </div>
 

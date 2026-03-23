@@ -23,6 +23,7 @@ const defaultSettings = {
   profile: { name: "", email: "" },
   notifications: { email: true, browser: false, weekly: true },
   tailorCount: 0,
+  improveCount: 0,
   tailorResetMonth: new Date().toISOString().slice(0, 7),
 };
 
@@ -34,6 +35,7 @@ const loadSettings = () => {
     const currentMonth = new Date().toISOString().slice(0, 7);
     if (parsed.tailorResetMonth !== currentMonth) {
       parsed.tailorCount = 0;
+      parsed.improveCount = 0;
       parsed.tailorResetMonth = currentMonth;
     }
     return { ...defaultSettings, ...parsed };
@@ -139,14 +141,15 @@ const AppContent = () => {
         // Apply settings
         if (data.settings) {
           const currentMonth = new Date().toISOString().slice(0, 7);
-          const count = data.settings.tailor_reset_month === currentMonth
-            ? data.settings.tailor_count
-            : 0;
+          const isSameMonth = data.settings.tailor_reset_month === currentMonth;
+          const tailorCount = isSameMonth ? data.settings.tailor_count : 0;
+          const improveCount = isSameMonth ? (data.settings.improve_count || 0) : 0;
           setSettings((prev) => {
             const next = {
               ...prev,
               notifications: data.settings.notifications || prev.notifications,
-              tailorCount: count,
+              tailorCount: tailorCount,
+              improveCount: improveCount,
               tailorResetMonth: currentMonth,
             };
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
@@ -220,10 +223,11 @@ const AppContent = () => {
             email: patch.profile.email,
           }).catch(console.warn);
         }
-        if (patch.notifications || patch.tailorCount !== undefined) {
+        if (patch.notifications || patch.tailorCount !== undefined || patch.improveCount !== undefined) {
           sync.updateSettings(user.id, {
             notifications: next.notifications,
             tailor_count: next.tailorCount,
+            improve_count: next.improveCount || 0,
             tailor_reset_month: next.tailorResetMonth,
           }).catch(console.warn);
         }
@@ -377,6 +381,7 @@ const AppContent = () => {
 
       setImprovedScore(result.score);
       setImprovedFeedback(result.feedback);
+      updateSettings({ improveCount: (settings.improveCount || 0) + 1 });
     } catch (err) {
       console.error("Failed to improve resume:", err);
       alert(`Failed to improve resume: ${err.message}`);
@@ -385,11 +390,8 @@ const AppContent = () => {
     }
   };
 
-  const TAILORS_MAX = 3;
-
   const handleTailorResume = async () => {
     if (!resumeText || !jdText.trim()) return;
-    if (settings.tailorCount >= TAILORS_MAX) return;
 
     if (tailoredResumeUrl) {
       URL.revokeObjectURL(tailoredResumeUrl);
