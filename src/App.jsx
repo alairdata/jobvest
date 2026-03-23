@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Component } from "react";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { useTailor } from "./hooks/useTailor";
 import { parseResume } from "./utils/parseResume";
@@ -1081,10 +1081,39 @@ const AppContent = () => {
   );
 };
 
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { error };
+  }
+  render() {
+    if (this.state.error) {
+      return (
+        <div style={{ padding: "40px", textAlign: "center", fontFamily: "sans-serif" }}>
+          <h2 style={{ color: "#dc2626", marginBottom: "8px" }}>Something went wrong</h2>
+          <p style={{ color: "#64748b", marginBottom: "16px", fontSize: "14px" }}>{this.state.error.message}</p>
+          <button
+            onClick={() => { this.setState({ error: null }); window.location.reload(); }}
+            style={{ padding: "10px 24px", background: "#3b82f6", color: "#fff", border: "none", borderRadius: "8px", cursor: "pointer", fontSize: "14px" }}
+          >
+            Reload
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 const App = () => (
-  <AuthProvider>
-    <AppContent />
-  </AuthProvider>
+  <ErrorBoundary>
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
+  </ErrorBoundary>
 );
 
 export default App;
