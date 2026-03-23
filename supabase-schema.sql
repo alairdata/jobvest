@@ -7,6 +7,7 @@ create table if not exists public.profiles (
   email text default '',
   avatar_url text,
   email_verified boolean default false,
+  is_google boolean default false,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -129,11 +130,12 @@ create policy "Users can delete own applications"
 create or replace function public.handle_new_user()
 returns trigger as $$
 begin
-  insert into public.profiles (id, name, email, email_verified)
+  insert into public.profiles (id, name, email, email_verified, is_google)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
     new.email,
+    case when new.raw_app_meta_data->>'provider' = 'google' then true else false end,
     case when new.raw_app_meta_data->>'provider' = 'google' then true else false end
   );
   insert into public.user_settings (id)
