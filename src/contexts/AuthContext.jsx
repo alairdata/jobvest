@@ -162,7 +162,16 @@ export const AuthProvider = ({ children }) => {
     });
     if (error) {
       if (error.message === "Invalid login credentials") {
-        throw new Error("No account found. Create a new account instead.");
+        // Check if this email belongs to a Google account
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("is_google")
+          .eq("email", email)
+          .maybeSingle();
+        if (profile?.is_google) {
+          throw new Error("This email is linked to a Google account. Please sign in with Google.");
+        }
+        throw new Error("Invalid email or password. Check your credentials or create a new account.");
       }
       if (error.message?.toLowerCase().includes("email not confirmed")) {
         throw new Error("Please verify your email first. Check your inbox for the verification link.");

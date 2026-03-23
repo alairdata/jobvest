@@ -37,6 +37,11 @@ export default async function handler(req, res) {
         const existingUser = users?.find((u) => u.email === email);
 
         if (existingUser) {
+          // Block if this is a Google account
+          if (existingUser.app_metadata?.provider === "google") {
+            return res.status(409).json({ error: "This email is linked to a Google account. Please sign in with Google." });
+          }
+
           // Check if they've verified via our custom flow
           const { data: profile } = await supabase
             .from("profiles")

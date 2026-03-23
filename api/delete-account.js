@@ -17,11 +17,33 @@ export default async function handler(req, res) {
   }
 
   try {
+    // Save profile + usage stats before deleting
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("name, email, is_google")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const { data: settings } = await supabase
+      .from("user_settings")
+      .select("total_tailor_count, total_improve_count")
+      .eq("id", userId)
+      .maybeSingle();
+
+    await supabase.from("deleted_profiles").insert({
+      user_id: userId,
+      name: profile?.name || "",
+      email: profile?.email || "",
+      is_google: profile?.is_google || false,
+      total_tailor_count: settings?.total_tailor_count || 0,
+      total_improve_count: settings?.total_improve_count || 0,
+    });
+
     // Delete user data from tables
     await supabase.from("verification_tokens").delete().eq("user_id", userId);
     await supabase.from("applications").delete().eq("user_id", userId);
     await supabase.from("resumes").delete().eq("user_id", userId);
-    await supabase.from("settings").delete().eq("user_id", userId);
+    await supabase.from("user_settings").delete().eq("id", userId);
     await supabase.from("profiles").delete().eq("id", userId);
 
     // Delete the auth user
