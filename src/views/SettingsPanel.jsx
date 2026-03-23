@@ -161,40 +161,6 @@ const SettingsPanel = ({
             )}
           </div>
 
-          {/* Subscription */}
-          <p className="text-[10px] font-bold text-stone-400 tracking-[1px] uppercase mb-4">
-            Subscription
-          </p>
-          <div className="rounded-2xl border border-warm-border p-5 mb-8">
-            <div className="flex items-start justify-between mb-1">
-              <div>
-                <p className="text-[15px] font-bold text-[#1a1a1a]">
-                  Free Plan
-                </p>
-                <p className="text-[13px] text-stone-500 mt-px">
-                  — tailors/month · Unlimited scores
-                </p>
-              </div>
-              <span className="text-[11px] font-bold text-brand tracking-[0.5px]">
-                CURRENT
-              </span>
-            </div>
-
-            <p className="text-[12px] text-stone-400 mb-5">
-              Unlimited tailors · Unlimited improvements · Unlimited scores
-            </p>
-
-            <button
-              onClick={() => setToast("Coming soon!")}
-              className="w-full py-3.5 rounded-xl border-none cursor-pointer text-[14px] font-bold font-sans bg-gradient-to-br from-brand to-brand-dark text-white shadow-[0_2px_12px_rgba(59,130,246,0.2)]"
-            >
-              Upgrade to Pro — $9/mo
-            </button>
-            <p className="text-[11px] text-stone-400 text-center mt-2.5">
-              Priority scoring · Browser companion · More features
-            </p>
-          </div>
-
           {/* Notifications */}
           <p className="text-[10px] font-bold text-stone-400 tracking-[1px] uppercase mb-4">
             Notifications
