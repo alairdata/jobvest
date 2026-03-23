@@ -13,6 +13,7 @@ import LogView from "./views/LogView";
 import SettingsPanel from "./views/SettingsPanel";
 import AuthView from "./views/AuthView";
 import CompanionPage from "./views/CompanionPage";
+import ReviewPopup from "./components/ReviewPopup";
 import * as sync from "./lib/sync";
 
 const STORAGE_KEY = "jobvest_saved_resume";
@@ -85,6 +86,8 @@ const AppContent = () => {
   const [openMenu, setOpenMenu] = useState(null);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [companionOpen, setCompanionOpen] = useState(false);
+  const [showReview, setShowReview] = useState(false);
+  const REVIEW_KEY = "jobvest_review_done";
   const [resumeScore, setResumeScore] = useState(saved?.resumeScore ?? null);
   const [resumeFeedback, setResumeFeedback] = useState(saved?.resumeFeedback ?? null);
   const [analyzing, setAnalyzing] = useState(false);
@@ -399,6 +402,10 @@ const AppContent = () => {
       setImprovedScore(result.score);
       setImprovedFeedback(result.feedback);
       updateSettings({ improveCount: (settings.improveCount || 0) + 1, totalImproveCount: (settings.totalImproveCount || 0) + 1 });
+      // Show review popup after first improve (if not already reviewed)
+      if (!localStorage.getItem(REVIEW_KEY)) {
+        setTimeout(() => setShowReview(true), 2000);
+      }
     } catch (err) {
       console.error("Failed to improve resume:", err);
       alert(`Failed to improve resume: ${err.message}`);
@@ -467,6 +474,9 @@ const AppContent = () => {
       }
 
       updateSettings({ tailorCount: settings.tailorCount + 1, totalTailorCount: (settings.totalTailorCount || 0) + 1 });
+      if (!localStorage.getItem(REVIEW_KEY)) {
+        setTimeout(() => setShowReview(true), 2000);
+      }
     } catch (err) {
       console.error("Failed to tailor resume:", err);
       throw err;
@@ -1074,6 +1084,27 @@ const AppContent = () => {
           user={user}
           onSignOut={handleSignOut}
           onDeleteAccount={handleDeleteAccount}
+        />
+      )}
+
+      {showReview && (
+        <ReviewPopup
+          onClose={() => {
+            setShowReview(false);
+            localStorage.setItem(REVIEW_KEY, "true");
+          }}
+          onSubmit={async ({ rating, subject, feedback }) => {
+            const res = await fetch("/api/review", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ userId: user?.id, rating, subject, feedback }),
+            });
+            if (!res.ok) {
+              const err = await res.json().catch(() => ({}));
+              throw new Error(err.error || "Failed to submit review");
+            }
+            localStorage.setItem(REVIEW_KEY, "true");
+          }}
         />
       )}
 

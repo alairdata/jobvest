@@ -53,7 +53,17 @@ create table if not exists public.applications (
   created_at timestamptz default now()
 );
 
--- 5. Verification tokens
+-- 5. Reviews
+create table if not exists public.reviews (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users on delete cascade not null,
+  rating integer not null check (rating >= 1 and rating <= 5),
+  subject text default '',
+  feedback text default '',
+  created_at timestamptz default now()
+);
+
+-- 6. Verification tokens
 create table if not exists public.verification_tokens (
   id uuid primary key default gen_random_uuid(),
   user_id uuid references auth.users on delete cascade not null,
