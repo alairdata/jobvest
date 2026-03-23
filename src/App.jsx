@@ -24,6 +24,8 @@ const defaultSettings = {
   notifications: { email: true, browser: false, weekly: true },
   tailorCount: 0,
   improveCount: 0,
+  scoreCount: 0,
+  totalScoreCount: 0,
   totalTailorCount: 0,
   totalImproveCount: 0,
   tailorResetMonth: new Date().toISOString().slice(0, 7),
@@ -38,6 +40,7 @@ const loadSettings = () => {
     if (parsed.tailorResetMonth !== currentMonth) {
       parsed.tailorCount = 0;
       parsed.improveCount = 0;
+      parsed.scoreCount = 0;
       parsed.tailorResetMonth = currentMonth;
     }
     return { ...defaultSettings, ...parsed };
@@ -149,14 +152,17 @@ const AppContent = () => {
           const isSameMonth = data.settings.tailor_reset_month === currentMonth;
           const tailorCount = isSameMonth ? data.settings.tailor_count : 0;
           const improveCount = isSameMonth ? (data.settings.improve_count || 0) : 0;
+          const scoreCount = isSameMonth ? (data.settings.score_count || 0) : 0;
           setSettings((prev) => {
             const next = {
               ...prev,
               notifications: data.settings.notifications || prev.notifications,
               tailorCount: tailorCount,
               improveCount: improveCount,
+              scoreCount: scoreCount,
               totalTailorCount: data.settings.total_tailor_count || 0,
               totalImproveCount: data.settings.total_improve_count || 0,
+              totalScoreCount: data.settings.total_score_count || 0,
               tailorResetMonth: currentMonth,
             };
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
@@ -230,13 +236,15 @@ const AppContent = () => {
             email: patch.profile.email,
           }).catch(console.warn);
         }
-        if (patch.notifications || patch.tailorCount !== undefined || patch.improveCount !== undefined || patch.totalTailorCount !== undefined || patch.totalImproveCount !== undefined) {
+        if (patch.notifications || patch.tailorCount !== undefined || patch.improveCount !== undefined || patch.scoreCount !== undefined || patch.totalTailorCount !== undefined || patch.totalImproveCount !== undefined || patch.totalScoreCount !== undefined) {
           sync.updateSettings(user.id, {
             notifications: next.notifications,
             tailor_count: next.tailorCount,
             improve_count: next.improveCount || 0,
+            score_count: next.scoreCount || 0,
             total_tailor_count: next.totalTailorCount || 0,
             total_improve_count: next.totalImproveCount || 0,
+            total_score_count: next.totalScoreCount || 0,
             tailor_reset_month: next.tailorResetMonth,
           }).catch(console.warn);
         }
@@ -542,6 +550,7 @@ const AppContent = () => {
         console.log("Original score:", result.score, "feedback items:", result.feedback.length);
         setResumeScore(result.score);
         setResumeFeedback(result.feedback);
+        updateSettings({ scoreCount: (settings.scoreCount || 0) + 1, totalScoreCount: (settings.totalScoreCount || 0) + 1 });
       } catch (err) {
         console.error("Resume analysis failed:", err);
         setResumeScore(null);
