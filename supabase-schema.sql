@@ -18,6 +18,8 @@ create table if not exists public.user_settings (
   notifications jsonb default '{"email": true, "browser": false, "weekly": true}',
   tailor_count integer default 0,
   improve_count integer default 0,
+  total_tailor_count integer default 0,
+  total_improve_count integer default 0,
   tailor_reset_month text default to_char(now(), 'YYYY-MM'),
   updated_at timestamptz default now()
 );

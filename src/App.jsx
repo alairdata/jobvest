@@ -24,6 +24,8 @@ const defaultSettings = {
   notifications: { email: true, browser: false, weekly: true },
   tailorCount: 0,
   improveCount: 0,
+  totalTailorCount: 0,
+  totalImproveCount: 0,
   tailorResetMonth: new Date().toISOString().slice(0, 7),
 };
 
@@ -150,6 +152,8 @@ const AppContent = () => {
               notifications: data.settings.notifications || prev.notifications,
               tailorCount: tailorCount,
               improveCount: improveCount,
+              totalTailorCount: data.settings.total_tailor_count || 0,
+              totalImproveCount: data.settings.total_improve_count || 0,
               tailorResetMonth: currentMonth,
             };
             localStorage.setItem(SETTINGS_KEY, JSON.stringify(next));
@@ -223,11 +227,13 @@ const AppContent = () => {
             email: patch.profile.email,
           }).catch(console.warn);
         }
-        if (patch.notifications || patch.tailorCount !== undefined || patch.improveCount !== undefined) {
+        if (patch.notifications || patch.tailorCount !== undefined || patch.improveCount !== undefined || patch.totalTailorCount !== undefined || patch.totalImproveCount !== undefined) {
           sync.updateSettings(user.id, {
             notifications: next.notifications,
             tailor_count: next.tailorCount,
             improve_count: next.improveCount || 0,
+            total_tailor_count: next.totalTailorCount || 0,
+            total_improve_count: next.totalImproveCount || 0,
             tailor_reset_month: next.tailorResetMonth,
           }).catch(console.warn);
         }
@@ -381,7 +387,7 @@ const AppContent = () => {
 
       setImprovedScore(result.score);
       setImprovedFeedback(result.feedback);
-      updateSettings({ improveCount: (settings.improveCount || 0) + 1 });
+      updateSettings({ improveCount: (settings.improveCount || 0) + 1, totalImproveCount: (settings.totalImproveCount || 0) + 1 });
     } catch (err) {
       console.error("Failed to improve resume:", err);
       alert(`Failed to improve resume: ${err.message}`);
@@ -449,7 +455,7 @@ const AppContent = () => {
         setTailoredAtsScore(scoreData.score);
       }
 
-      updateSettings({ tailorCount: settings.tailorCount + 1 });
+      updateSettings({ tailorCount: settings.tailorCount + 1, totalTailorCount: (settings.totalTailorCount || 0) + 1 });
     } catch (err) {
       console.error("Failed to tailor resume:", err);
       throw err;

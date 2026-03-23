@@ -150,6 +150,8 @@ export const pushLocalDataToCloud = async (userId) => {
           notifications: s.notifications,
           tailor_count: s.tailorCount || 0,
           improve_count: s.improveCount || 0,
+          total_tailor_count: s.totalTailorCount || 0,
+          total_improve_count: s.totalImproveCount || 0,
           tailor_reset_month: s.tailorResetMonth,
         });
       }
