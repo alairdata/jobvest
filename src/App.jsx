@@ -1044,8 +1044,6 @@ const AppContent = () => {
           onClose={() => setSettingsOpen(false)}
           profile={{ ...settings.profile, name: profileName }}
           notifications={settings.notifications}
-          tailorsUsed={settings.tailorCount}
-          tailorsMax={TAILORS_MAX}
           onUpdateProfile={(profile) => updateSettings({ profile })}
           onUpdateNotifications={(notifications) => updateSettings({ notifications })}
           onClearAllData={handleClearAllData}
@@ -1053,7 +1051,6 @@ const AppContent = () => {
           user={user}
           onSignOut={handleSignOut}
           onDeleteAccount={handleDeleteAccount}
-          guestMode={guestMode}
         />
       )}
 

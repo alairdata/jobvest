@@ -21,8 +21,6 @@ const SettingsPanel = ({
   onClose,
   profile,
   notifications,
-  tailorsUsed,
-  tailorsMax,
   onUpdateProfile,
   onUpdateNotifications,
   onClearAllData,
@@ -30,7 +28,6 @@ const SettingsPanel = ({
   user,
   onSignOut,
   onDeleteAccount,
-  guestMode,
 }) => {
   const [editing, setEditing] = useState(false);
   const [editName, setEditName] = useState(profile.name);
