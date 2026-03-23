@@ -641,6 +641,20 @@ const AppContent = () => {
       setHasResume(false);
       setResumeText("");
       setResumeFileName("");
+      setResumeFile(null);
+      setResumeFileUrl(null);
+      setResumeScore(null);
+      setResumeFeedback(null);
+      setCandidateName("");
+      setSavedToProfile(false);
+      setImprovedResumeUrl(null);
+      setImprovedScore(null);
+      setImprovedFeedback(null);
+      setAtsScore(null);
+      setAtsFeedback(null);
+      setJdText("");
+      setUserApplications([]);
+      setAppStatuses([]);
     } catch (err) {
       console.error("Delete account failed:", err);
       alert(`Failed to delete account: ${err.message}`);
