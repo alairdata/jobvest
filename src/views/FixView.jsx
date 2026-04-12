@@ -30,6 +30,7 @@ const FixView = ({
   savedToProfile,
 }) => {
   const [showImproved, setShowImproved] = useState(true);
+  const [hoveredTip, setHoveredTip] = useState(null);
   const isPdf = resumeFileType === "application/pdf";
   const hasImproved = !!improvedResumeUrl;
 
@@ -189,13 +190,35 @@ const FixView = ({
             )}
 
             <div className="flex gap-2 mt-[22px]">
-              <button
-                onClick={onImproveResume}
-                disabled={improving || analyzing || !isPdf || !resumeText}
-                className="flex-1 py-3 px-2 rounded-[10px] border-none bg-gradient-to-br from-brand to-brand-dark text-white text-xs font-bold cursor-pointer font-sans shadow-[0_2px_10px_rgba(59,130,246,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+              <div style={{ position: "relative", flex: 1 }}
+                onMouseEnter={() => setHoveredTip("improve")}
+                onMouseLeave={() => setHoveredTip(null)}
               >
-                {improving ? "Improving..." : hasImproved ? "Improve Again" : "Improve Resume"}
-              </button>
+                {hoveredTip === "improve" && (
+                  <div style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+                    transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff",
+                    fontSize: "11.5px", lineHeight: "1.6", fontFamily: "'DM Sans', sans-serif",
+                    padding: "9px 13px", borderRadius: "10px", width: "220px",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.18)", zIndex: 50, textAlign: "left",
+                    pointerEvents: "none",
+                  }}>
+                    Don't like your score? Hit improve and we'll fix the weak spots and push it higher.
+                    <div style={{
+                      position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
+                      borderWidth: "6px", borderStyle: "solid",
+                      borderColor: "#1a1a1a transparent transparent transparent",
+                    }} />
+                  </div>
+                )}
+                <button
+                  onClick={onImproveResume}
+                  disabled={improving || analyzing || !isPdf || !resumeText}
+                  className="w-full py-3 px-2 rounded-[10px] border-none bg-gradient-to-br from-brand to-brand-dark text-white text-xs font-bold cursor-pointer font-sans shadow-[0_2px_10px_rgba(59,130,246,0.2)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {improving ? "Improving..." : hasImproved ? "Improve Again" : "Improve Resume"}
+                </button>
+              </div>
               <button
                 onClick={onReset}
                 className="flex-1 py-3 px-2 rounded-[10px] border-[1.5px] border-stone-200 bg-white text-stone-600 text-xs font-semibold cursor-pointer font-sans"
@@ -204,25 +227,69 @@ const FixView = ({
               </button>
             </div>
 
-            <button
-              onClick={() => setMode("launch")}
-              className="w-full py-3 rounded-[10px] border-none bg-blue-50 text-blue-600 text-[13px] font-bold cursor-pointer font-sans mt-2.5 transition-colors hover:bg-blue-100"
+            <div style={{ position: "relative" }}
+              onMouseEnter={() => setHoveredTip("launch")}
+              onMouseLeave={() => setHoveredTip(null)}
             >
-              Launch Job Search →
-            </button>
+              {hoveredTip === "launch" && (
+                <div style={{
+                  position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+                  transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff",
+                  fontSize: "11.5px", lineHeight: "1.6", fontFamily: "'DM Sans', sans-serif",
+                  padding: "9px 13px", borderRadius: "10px", width: "230px",
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.18)", zIndex: 50, textAlign: "left",
+                  pointerEvents: "none",
+                }}>
+                  Your resume is scored and ready — head here to tailor it to specific jobs and apply with confidence.
+                  <div style={{
+                    position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
+                    borderWidth: "6px", borderStyle: "solid",
+                    borderColor: "#1a1a1a transparent transparent transparent",
+                  }} />
+                </div>
+              )}
+              <button
+                onClick={() => setMode("launch")}
+                className="w-full py-3 rounded-[10px] border-none bg-blue-50 text-blue-600 text-[13px] font-bold cursor-pointer font-sans mt-2.5 transition-colors hover:bg-blue-100"
+              >
+                Launch Job Search →
+              </button>
+            </div>
 
             {onSaveResume && !analyzing && !improving && (
-              <button
-                onClick={onSaveResume}
-                disabled={savedToProfile || !resumeScore}
-                className={`w-full py-2.5 rounded-[10px] border-[1.5px] text-xs font-semibold cursor-pointer font-sans mt-1.5 transition-colors ${
-                  savedToProfile
-                    ? "border-green-200 bg-green-50 text-green-600 cursor-default"
-                    : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+              <div style={{ position: "relative" }}
+                onMouseEnter={() => setHoveredTip("save")}
+                onMouseLeave={() => setHoveredTip(null)}
               >
-                {savedToProfile ? "✓ Saved to Profile" : "Save to Profile"}
-              </button>
+                {hoveredTip === "save" && (
+                  <div style={{
+                    position: "absolute", bottom: "calc(100% + 8px)", left: "50%",
+                    transform: "translateX(-50%)", background: "#1a1a1a", color: "#fff",
+                    fontSize: "11.5px", lineHeight: "1.6", fontFamily: "'DM Sans', sans-serif",
+                    padding: "9px 13px", borderRadius: "10px", width: "230px",
+                    boxShadow: "0 4px 16px rgba(0,0,0,0.18)", zIndex: 50, textAlign: "left",
+                    pointerEvents: "none",
+                  }}>
+                    Save this resume and use it to apply to jobs automatically — even in your browser. No more hassle.
+                    <div style={{
+                      position: "absolute", top: "100%", left: "50%", transform: "translateX(-50%)",
+                      borderWidth: "6px", borderStyle: "solid",
+                      borderColor: "#1a1a1a transparent transparent transparent",
+                    }} />
+                  </div>
+                )}
+                <button
+                  onClick={onSaveResume}
+                  disabled={savedToProfile || !resumeScore}
+                  className={`w-full py-2.5 rounded-[10px] border-[1.5px] text-xs font-semibold cursor-pointer font-sans mt-1.5 transition-colors ${
+                    savedToProfile
+                      ? "border-green-200 bg-green-50 text-green-600 cursor-default"
+                      : "border-stone-200 bg-white text-stone-600 hover:bg-stone-50"
+                  } disabled:opacity-50 disabled:cursor-not-allowed`}
+                >
+                  {savedToProfile ? "✓ Saved to Profile" : "Save to Profile"}
+                </button>
+              </div>
             )}
           </div>
 

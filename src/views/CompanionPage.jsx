@@ -122,6 +122,7 @@ const CompanionPage = ({ onBack }) => {
             }}
               onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 6px 24px rgba(59,130,246,0.4)"; }}
               onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(59,130,246,0.3)"; }}
+              onClick={() => window.open("https://chromewebstore.google.com/detail/jobvest-%E2%80%94-your-no1-job-se/ilglaeggofglpchnkagigbiolckffhpc?utm_source=ext_app_menu", "_blank")}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" fill="#fff" opacity="0.2"/><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.42 0-8-3.58-8-8s3.58-8 8-8 8 3.58 8 8-3.58 8-8 8z" fill="#fff" opacity="0.5"/><circle cx="12" cy="12" r="4" fill="#fff"/></svg>
               Add to Chrome — It's free
@@ -412,7 +413,7 @@ const CompanionPage = ({ onBack }) => {
             color: "#fff", margin: "0 0 12px", letterSpacing: "-0.5px",
           }}>Ready to dress your job search right?</h2>
           <p style={{ fontSize: "15px", color: "#64748b", margin: "0 0 32px" }}>Free to install. No credit card needed.</p>
-          <button style={{
+          <button onClick={() => window.open("https://chromewebstore.google.com/detail/jobvest-%E2%80%94-your-no1-job-se/ilglaeggofglpchnkagigbiolckffhpc?utm_source=ext_app_menu", "_blank")} style={{
             padding: "18px 36px", borderRadius: "14px", border: "none",
             background: "linear-gradient(135deg, #3b82f6, #1d4ed8)", color: "#fff",
             fontSize: "16px", fontWeight: 700, cursor: "pointer", fontFamily: "'DM Sans', sans-serif",
